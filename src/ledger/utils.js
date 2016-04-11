@@ -32,6 +32,19 @@ function getXRPBalance(connection: Connection, address: string,
     dropsToXrp(data.account_data.Balance));
 }
 
+function getXRPModifyBalance(connection, address, ledgerVersion) {
+  var request = {
+    command: 'account_info',
+    account: address,
+    ledger_index: ledgerVersion
+  };
+
+  	
+  return connection.request(request).then(function (data) {
+	return data;
+  });
+}
+
 // If the marker is omitted from a response, you have reached the end
 function getRecursiveRecur(getter: Getter, marker?: string, limit: number
 ): Promise {
@@ -124,6 +137,7 @@ function ensureLedgerVersion(options: Object
 
 module.exports = {
   getXRPBalance,
+  getXRPModifyBalance,
   ensureLedgerVersion,
   compareTransactions,
   renameCounterpartyToIssuerInOrder,

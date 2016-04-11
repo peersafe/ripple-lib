@@ -28,7 +28,9 @@ function parseAccountTrustline(trustline: Trustline): AccountTrustline {
     qualityOut: utils.parseQuality(trustline.quality_out) || undefined,
     ripplingDisabled: trustline.no_ripple || undefined,
     frozen: trustline.freeze || undefined,
-    authorized: trustline.authorized || undefined
+    authorized: trustline.authorized || undefined,
+    currencyname:trustline.currency_name,
+	currencysymbol:trustline.currency_symbol
   });
   // rippled doesn't provide the counterparty's qualities
   const counterparty = utils.removeUndefined({
