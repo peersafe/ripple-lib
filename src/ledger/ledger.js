@@ -1,22 +1,19 @@
-/* @flow */
+
 'use strict';
-const utils = require('./utils');
-const {validate} = utils.common;
-const parseLedger = require('./parse/ledger');
-import type {GetLedger} from './types.js';
 
-type LedgerOptions = {
-  ledgerVersion?: number,
-  includeAllData?: boolean,
-  includeTransactions?: boolean,
-  includeState?: boolean
-}
+var _Promise = require('babel-runtime/core-js/promise')['default'];
 
+var utils = require('./utils');
+var validate = utils.common.validate;
 
-function getLedger(options: LedgerOptions = {}): Promise<GetLedger> {
-  validate.getLedger({options});
+var parseLedger = require('./parse/ledger');
 
-  const request = {
+function getLedger() {
+  var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+  validate.getLedger({ options: options });
+
+  var request = {
     command: 'ledger',
     ledger_index: options.ledgerVersion || 'validated',
     expand: options.includeAllData,
@@ -24,8 +21,9 @@ function getLedger(options: LedgerOptions = {}): Promise<GetLedger> {
     accounts: options.includeState
   };
 
-  return this.connection.request(request).then(response =>
-    parseLedger(response.ledger));
+  return this.connection.request(request).then(function (response) {
+    return parseLedger(response.ledger);
+  });
 }
 
 module.exports = getLedger;

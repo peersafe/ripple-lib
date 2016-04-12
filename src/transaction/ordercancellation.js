@@ -1,14 +1,14 @@
-/* @flow */
-'use strict';
-const _ = require('lodash');
-const utils = require('./utils');
-const validate = utils.common.validate;
-import type {Instructions, Prepare} from './types.js';
 
-function createOrderCancellationTransaction(account: string,
-    orderCancellation: Object
-): Object {
-  const txJSON: Object = {
+'use strict';
+
+var _Promise = require('babel-runtime/core-js/promise')['default'];
+
+var _ = require('lodash');
+var utils = require('./utils');
+var validate = utils.common.validate;
+
+function createOrderCancellationTransaction(account, orderCancellation) {
+  var txJSON = {
     TransactionType: 'OfferCancel',
     Account: account,
     OfferSequence: orderCancellation.orderSequence
@@ -19,11 +19,11 @@ function createOrderCancellationTransaction(account: string,
   return txJSON;
 }
 
-function prepareOrderCancellation(address: string, orderCancellation: Object,
-  instructions: Instructions = {}
-): Promise<Prepare> {
-  validate.prepareOrderCancellation({address, orderCancellation, instructions});
-  const txJSON = createOrderCancellationTransaction(address, orderCancellation);
+function prepareOrderCancellation(address, orderCancellation) {
+  var instructions = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+
+  validate.prepareOrderCancellation({ address: address, orderCancellation: orderCancellation, instructions: instructions });
+  var txJSON = createOrderCancellationTransaction(address, orderCancellation);
   return utils.prepareTransaction(txJSON, this, instructions);
 }
 

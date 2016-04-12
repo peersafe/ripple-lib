@@ -1,10 +1,8 @@
-/* @flow */
+
 'use strict';
-const utils = require('./utils');
-import type {Amount, RippledAmount} from '../../common/types.js';
+var utils = require('./utils');
 
-
-function parseAmount(amount: RippledAmount): Amount {
+function parseAmount(amount) {
   if (typeof amount === 'string') {
     return {
       currency: 'XRP',

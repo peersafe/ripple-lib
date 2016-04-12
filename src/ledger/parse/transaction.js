@@ -1,19 +1,18 @@
-/* @flow */
+
 'use strict';
-const assert = require('assert');
-const utils = require('./utils');
-const parsePayment = require('./payment');
-const parseTrustline = require('./trustline');
-const parseOrder = require('./order');
-const parseOrderCancellation = require('./cancellation');
-const parseSettings = require('./settings');
-const parseSuspendedPaymentCreation = require('./suspended-payment-creation');
-const parseSuspendedPaymentExecution = require('./suspended-payment-execution');
-const parseSuspendedPaymentCancellation =
-  require('./suspended-payment-cancellation');
+var assert = require('assert');
+var utils = require('./utils');
+var parsePayment = require('./payment');
+var parseTrustline = require('./trustline');
+var parseOrder = require('./order');
+var parseOrderCancellation = require('./cancellation');
+var parseSettings = require('./settings');
+var parseSuspendedPaymentCreation = require('./suspended-payment-creation');
+var parseSuspendedPaymentExecution = require('./suspended-payment-execution');
+var parseSuspendedPaymentCancellation = require('./suspended-payment-cancellation');
 
 function parseTransactionType(type) {
-  const mapping = {
+  var mapping = {
     Payment: 'payment',
     TrustSet: 'trustline',
     OfferCreate: 'order',
@@ -28,9 +27,9 @@ function parseTransactionType(type) {
   return mapping[type] || null;
 }
 
-function parseTransaction(tx: Object): Object {
-  const type = parseTransactionType(tx.TransactionType);
-  const mapping = {
+function parseTransaction(tx) {
+  var type = parseTransactionType(tx.TransactionType);
+  var mapping = {
     'payment': parsePayment,
     'trustline': parseTrustline,
     'order': parseOrder,
@@ -40,10 +39,10 @@ function parseTransaction(tx: Object): Object {
     'suspendedPaymentExecution': parseSuspendedPaymentExecution,
     'suspendedPaymentCancellation': parseSuspendedPaymentCancellation
   };
-  const parser = mapping[type];
+  var parser = mapping[type];
   assert(parser !== undefined, 'Unrecognized transaction type');
-  const specification = parser(tx);
-  const outcome = utils.parseOutcome(tx);
+  var specification = parser(tx);
+  var outcome = utils.parseOutcome(tx);
   return utils.removeUndefined({
     type: type,
     address: tx.Account,

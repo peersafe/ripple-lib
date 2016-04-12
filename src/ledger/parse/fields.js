@@ -1,25 +1,26 @@
-/* @flow */
+
 'use strict';
-const _ = require('lodash');
-const BigNumber = require('bignumber.js');
-const AccountFields = require('./utils').constants.AccountFields;
+var _ = require('lodash');
+var BigNumber = require('bignumber.js');
+var AccountFields = require('./utils').constants.AccountFields;
 
 function parseField(info, value) {
-  if (info.encoding === 'hex' && !info.length) {  // e.g. "domain"
+  if (info.encoding === 'hex' && !info.length) {
+    // e.g. "domain"
     return new Buffer(value, 'hex').toString('ascii');
   }
   if (info.shift) {
-    return (new BigNumber(value)).shift(-info.shift).toNumber();
+    return new BigNumber(value).shift(-info.shift).toNumber();
   }
   return value;
 }
 
-function parseFields(data: Object): Object {
-  const settings = {};
-  for (const fieldName in AccountFields) {
-    const fieldValue = data[fieldName];
+function parseFields(data) {
+  var settings = {};
+  for (var fieldName in AccountFields) {
+    var fieldValue = data[fieldName];
     if (fieldValue !== undefined) {
-      const info = AccountFields[fieldName];
+      var info = AccountFields[fieldName];
       settings[info.name] = parseField(info, fieldValue);
     }
   }
@@ -35,7 +36,7 @@ function parseFields(data: Object): Object {
       settings.signers.threshold = data.SignerQuorum;
     }
     if (data.SignerEntries) {
-      settings.signers.weights = _.map(data.SignerEntries, entry => {
+      settings.signers.weights = _.map(data.SignerEntries, function (entry) {
         return {
           address: entry.SignerEntry.Account,
           weight: entry.SignerEntry.SignerWeight

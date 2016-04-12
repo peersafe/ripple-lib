@@ -1,44 +1,41 @@
-/* @flow */
-'use strict';
-const _ = require('lodash');
-const utils = require('./utils');
-const flags = require('./flags').orderFlags;
-const parseAmount = require('./amount');
 
-function parseOrderbookOrder(order: Object): Object {
-  const direction = (order.Flags & flags.Sell) === 0 ? 'buy' : 'sell';
-  const takerGetsAmount = parseAmount(order.TakerGets);
-  const takerPaysAmount = parseAmount(order.TakerPays);
-  const quantity = (direction === 'buy') ? takerPaysAmount : takerGetsAmount;
-  const totalPrice = (direction === 'buy') ? takerGetsAmount : takerPaysAmount;
+'use strict';
+var _ = require('lodash');
+var utils = require('./utils');
+var flags = require('./flags').orderFlags;
+var parseAmount = require('./amount');
+
+function parseOrderbookOrder(order) {
+  var direction = (order.Flags & flags.Sell) === 0 ? 'buy' : 'sell';
+  var takerGetsAmount = parseAmount(order.TakerGets);
+  var takerPaysAmount = parseAmount(order.TakerPays);
+  var quantity = direction === 'buy' ? takerPaysAmount : takerGetsAmount;
+  var totalPrice = direction === 'buy' ? takerGetsAmount : takerPaysAmount;
 
   // note: immediateOrCancel and fillOrKill orders cannot enter the order book
   // so we can omit those flags here
-  const specification = utils.removeUndefined({
+  var specification = utils.removeUndefined({
     direction: direction,
     quantity: quantity,
     totalPrice: totalPrice,
-    passive: ((order.Flags & flags.Passive) !== 0) || undefined,
+    passive: (order.Flags & flags.Passive) !== 0 || undefined,
     expirationTime: utils.parseTimestamp(order.Expiration)
   });
 
-  const properties = {
+  var properties = {
     maker: order.Account,
     sequence: order.Sequence,
-    makerExchangeRate: utils.adjustQualityForXRP(order.quality,
-      takerGetsAmount.currency, takerPaysAmount.currency)
+    makerExchangeRate: utils.adjustQualityForXRP(order.quality, takerGetsAmount.currency, takerPaysAmount.currency)
   };
 
-  const takerGetsFunded = order.taker_gets_funded ?
-      parseAmount(order.taker_gets_funded) : undefined;
-  const takerPaysFunded = order.taker_pays_funded ?
-      parseAmount(order.taker_pays_funded) : undefined;
-  const available = utils.removeUndefined({
+  var takerGetsFunded = order.taker_gets_funded ? parseAmount(order.taker_gets_funded) : undefined;
+  var takerPaysFunded = order.taker_pays_funded ? parseAmount(order.taker_pays_funded) : undefined;
+  var available = utils.removeUndefined({
     fundedAmount: takerGetsFunded,
     priceOfFundedAmount: takerPaysFunded
   });
-  const state = _.isEmpty(available) ? undefined : available;
-  return utils.removeUndefined({specification, properties, state});
+  var state = _.isEmpty(available) ? undefined : available;
+  return utils.removeUndefined({ specification: specification, properties: properties, state: state });
 }
 
 module.exports = parseOrderbookOrder;

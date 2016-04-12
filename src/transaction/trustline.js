@@ -1,31 +1,38 @@
-/* @flow */
+
 'use strict';
-const _ = require('lodash');
-const utils = require('./utils');
-const validate = utils.common.validate;
-const trustlineFlags = utils.common.txFlags.TrustSet;
-const BigNumber = require('bignumber.js');
-import type {Instructions, Prepare} from './types.js';
-import type {TrustLineSpecification} from '../ledger/trustlines-types.js';
+
+var _Promise = require('babel-runtime/core-js/promise')['default'];
+
+var _ = require('lodash');
+var utils = require('./utils');
+var validate = utils.common.validate;
+var trustlineFlags = utils.common.txFlags.TrustSet;
+var BigNumber = require('bignumber.js');
 
 function convertQuality(quality) {
-  return (new BigNumber(quality)).shift(9).truncated().toNumber();
+  return new BigNumber(quality).shift(9).truncated().toNumber();
 }
 
-function createTrustlineTransaction(account: string,
-    trustline: TrustLineSpecification
-): Object {
-  const limit = {
+function createTrustlineTransaction(account, trustline) {
+  var limit = {
     currency: trustline.currency,
     issuer: trustline.counterparty,
-    value: trustline.limit
+    value: trustline.limit,
+    TestNode: trustline.TestNode
   };
 
-  const txJSON: Object = {
+console.log("in createTrustlineTransaction limit");
+console.log(limit);
+console.log("********************************");
+console.log("in createTrustlineTransaction trustline");
+console.log(trustline);
+console.log("********************************");
+
+  var txJSON = {
     TransactionType: 'TrustSet',
     Account: account,
     LimitAmount: limit,
-    Flags: 0
+    Flags: 0  
   };
   if (trustline.qualityIn !== undefined) {
     txJSON.QualityIn = convertQuality(trustline.qualityIn);
@@ -37,24 +44,27 @@ function createTrustlineTransaction(account: string,
     txJSON.Flags |= trustlineFlags.SetAuth;
   }
   if (trustline.ripplingDisabled !== undefined) {
-    txJSON.Flags |= trustline.ripplingDisabled ?
-      trustlineFlags.NoRipple : trustlineFlags.ClearNoRipple;
+    txJSON.Flags |= trustline.ripplingDisabled ? trustlineFlags.NoRipple : trustlineFlags.ClearNoRipple;
   }
   if (trustline.frozen !== undefined) {
-    txJSON.Flags |= trustline.frozen ?
-      trustlineFlags.SetFreeze : trustlineFlags.ClearFreeze;
+    txJSON.Flags |= trustline.frozen ? trustlineFlags.SetFreeze : trustlineFlags.ClearFreeze;
   }
   if (trustline.memos !== undefined) {
     txJSON.Memos = _.map(trustline.memos, utils.convertMemo);
   }
+  console.log("*************txJSON********************");
+  console.log(txJSON);
   return txJSON;
 }
 
-function prepareTrustline(address: string,
-    trustline: TrustLineSpecification, instructions: Instructions = {}
-): Promise<Prepare> {
-  validate.prepareTrustline({address, trustline, instructions});
-  const txJSON = createTrustlineTransaction(address, trustline);
+function prepareTrustline(address, trustline) {
+	debugger;
+  var instructions = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+
+  //validate.prepareTrustline({ address: address, trustline: trustline, instructions: instructions });
+  var txJSON = createTrustlineTransaction(address, trustline);
+  console.log("txJSON in prepareTrustline:");
+  console.log(txJSON);
   return utils.prepareTransaction(txJSON, this, instructions);
 }
 

@@ -1,11 +1,11 @@
 'use strict';
 
-const orderFlags = {
+var orderFlags = {
   Passive: 0x00010000,
-  Sell: 0x00020000  // offer was placed as a sell
+  Sell: 0x00020000 // offer was placed as a sell
 };
 
-const trustlineFlags = {
+var trustlineFlags = {
   LowReserve: 0x00010000, // entry counts toward reserve
   HighReserve: 0x00020000,
   LowAuth: 0x00040000,
@@ -17,6 +17,6 @@ const trustlineFlags = {
 };
 
 module.exports = {
-  orderFlags,
-  trustlineFlags
+  orderFlags: orderFlags,
+  trustlineFlags: trustlineFlags
 };

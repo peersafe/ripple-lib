@@ -1,5 +1,5 @@
 'use strict';
-const utils = require('./utils');
+var utils = require('./utils');
 
 module.exports = {
   Connection: require('./connection'),
@@ -14,8 +14,7 @@ module.exports = {
   generateAddress: utils.generateAddress,
   generateAddressAPI: utils.generateAddressAPI,
   removeUndefined: utils.removeUndefined,
-  convertKeysFromSnakeCaseToCamelCase:
-    utils.convertKeysFromSnakeCaseToCamelCase,
+  convertKeysFromSnakeCaseToCamelCase: utils.convertKeysFromSnakeCaseToCamelCase,
   iso8601ToRippleTime: utils.iso8601ToRippleTime,
   rippleTimeToISO8601: utils.rippleTimeToISO8601,
   isValidSecret: utils.isValidSecret

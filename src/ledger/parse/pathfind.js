@@ -1,37 +1,32 @@
-/* @flow */
+
 'use strict';
-const _ = require('lodash');
-const parseAmount = require('./amount');
-import type {Amount, RippledAmount} from '../../common/types.js';
-import type {GetPaths, RippledPathsResponse} from '../pathfind-types.js';
+var _ = require('lodash');
+var parseAmount = require('./amount');
 
 function parsePaths(paths) {
-  return paths.map(steps => steps.map(step =>
-    _.omit(step, ['type', 'type_hex'])));
+  return paths.map(function (steps) {
+    return steps.map(function (step) {
+      return _.omit(step, ['type', 'type_hex']);
+    });
+  });
 }
 
-function removeAnyCounterpartyEncoding(address: string, amount: Amount) {
-  return amount.counterparty === address ?
-    _.omit(amount, 'counterparty') : amount;
+function removeAnyCounterpartyEncoding(address, amount) {
+  return amount.counterparty === address ? _.omit(amount, 'counterparty') : amount;
 }
 
-function createAdjustment(address: string, adjustmentWithoutAddress: Object) {
-  const amountKey = _.keys(adjustmentWithoutAddress)[0];
-  const amount = adjustmentWithoutAddress[amountKey];
-  return _.set({address: address}, amountKey,
-               removeAnyCounterpartyEncoding(address, amount));
+function createAdjustment(address, adjustmentWithoutAddress) {
+  var amountKey = _.keys(adjustmentWithoutAddress)[0];
+  var amount = adjustmentWithoutAddress[amountKey];
+  return _.set({ address: address }, amountKey, removeAnyCounterpartyEncoding(address, amount));
 }
 
-function parseAlternative(sourceAddress: string, destinationAddress: string,
-  destinationAmount: RippledAmount, alternative: Object
-) {
+function parseAlternative(sourceAddress, destinationAddress, destinationAmount, alternative) {
   // we use "maxAmount"/"minAmount" here so that the result can be passed
   // directly to preparePayment
-  const amounts = (alternative.destination_amount !== undefined) ?
-    {source: {amount: parseAmount(alternative.source_amount)},
-     destination: {minAmount: parseAmount(alternative.destination_amount)}} :
-    {source: {maxAmount: parseAmount(alternative.source_amount)},
-     destination: {amount: parseAmount(destinationAmount)}};
+  var amounts = alternative.destination_amount !== undefined ? { source: { amount: parseAmount(alternative.source_amount) },
+    destination: { minAmount: parseAmount(alternative.destination_amount) } } : { source: { maxAmount: parseAmount(alternative.source_amount) },
+    destination: { amount: parseAmount(destinationAmount) } };
 
   return {
     source: createAdjustment(sourceAddress, amounts.source),
@@ -40,12 +35,11 @@ function parseAlternative(sourceAddress: string, destinationAddress: string,
   };
 }
 
-function parsePathfind(pathfindResult: RippledPathsResponse): GetPaths {
-  const sourceAddress = pathfindResult.source_account;
-  const destinationAddress = pathfindResult.destination_account;
-  const destinationAmount = pathfindResult.destination_amount;
-  return pathfindResult.alternatives.map(_.partial(parseAlternative,
-    sourceAddress, destinationAddress, destinationAmount));
+function parsePathfind(pathfindResult) {
+  var sourceAddress = pathfindResult.source_account;
+  var destinationAddress = pathfindResult.destination_account;
+  var destinationAmount = pathfindResult.destination_amount;
+  return pathfindResult.alternatives.map(_.partial(parseAlternative, sourceAddress, destinationAddress, destinationAmount));
 }
 
 module.exports = parsePathfind;

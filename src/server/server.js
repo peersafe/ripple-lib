@@ -1,34 +1,37 @@
-/* @flow */
-'use strict';
-const common = require('../common');
-import type {GetServerInfoResponse} from '../common/serverinfo';
 
-function isConnected(): boolean {
+'use strict';
+
+var _Promise = require('babel-runtime/core-js/promise')['default'];
+
+var common = require('../common');
+
+function isConnected() {
   return this.connection.isConnected();
 }
 
-function getLedgerVersion(): Promise<number> {
+function getLedgerVersion() {
+  debugger;
   return this.connection.getLedgerVersion();
 }
 
-function connect(): Promise<void> {
+function connect() {
   return this.connection.connect();
 }
 
-function disconnect(): Promise<void> {
+function disconnect() {
   return this.connection.disconnect();
 }
 
-function getServerInfo(): Promise<GetServerInfoResponse> {
+function getServerInfo() {
   return common.serverInfo.getServerInfo(this.connection);
 }
 
-function getFee(): Promise<number> {
-  const cushion = this._feeCushion || 1.2;
+function getFee() {
+  var cushion = this._feeCushion || 1.2;
   return common.serverInfo.getFee(this.connection, cushion);
 }
 
-function formatLedgerClose(ledgerClose: Object): Object {
+function formatLedgerClose(ledgerClose) {
   return {
     baseFeeXRP: common.dropsToXrp(ledgerClose.fee_base),
     ledgerHash: ledgerClose.ledger_hash,
@@ -42,11 +45,11 @@ function formatLedgerClose(ledgerClose: Object): Object {
 }
 
 module.exports = {
-  connect,
-  disconnect,
-  isConnected,
-  getServerInfo,
-  getFee,
-  getLedgerVersion,
-  formatLedgerClose
+  connect: connect,
+  disconnect: disconnect,
+  isConnected: isConnected,
+  getServerInfo: getServerInfo,
+  getFee: getFee,
+  getLedgerVersion: getLedgerVersion,
+  formatLedgerClose: formatLedgerClose
 };

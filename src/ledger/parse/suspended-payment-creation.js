@@ -1,26 +1,24 @@
-/* @flow */
+
 'use strict';
-const _ = require('lodash');
-const assert = require('assert');
-const utils = require('./utils');
-const parseAmount = require('./amount');
+var _ = require('lodash');
+var assert = require('assert');
+var utils = require('./utils');
+var parseAmount = require('./amount');
 
 function removeGenericCounterparty(amount, address) {
-  return amount.counterparty === address ?
-    _.omit(amount, 'counterparty') : amount;
+  return amount.counterparty === address ? _.omit(amount, 'counterparty') : amount;
 }
 
-function parseSuspendedPaymentCreation(tx: Object): Object {
+function parseSuspendedPaymentCreation(tx) {
   assert(tx.TransactionType === 'SuspendedPaymentCreate');
 
-  const source = {
+  var source = {
     address: tx.Account,
-    maxAmount: removeGenericCounterparty(
-      parseAmount(tx.SendMax || tx.Amount), tx.Account),
+    maxAmount: removeGenericCounterparty(parseAmount(tx.SendMax || tx.Amount), tx.Account),
     tag: tx.SourceTag
   };
 
-  const destination = {
+  var destination = {
     address: tx.Destination,
     amount: removeGenericCounterparty(parseAmount(tx.Amount), tx.Destination),
     tag: tx.DestinationTag

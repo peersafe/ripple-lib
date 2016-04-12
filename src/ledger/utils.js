@@ -1,90 +1,69 @@
-/* @flow */
+
 'use strict';
-const _ = require('lodash');
-const assert = require('assert');
-const common = require('../common');
-const dropsToXrp = common.dropsToXrp;
-import type {TransactionType} from './transaction-types';
-import type {Issue} from '../common/types.js';
-import type {Connection} from '../common/connection';
 
-type RecursiveData = {
-  marker: string,
-  results: Array<any>
-}
+var _Promise = require('babel-runtime/core-js/promise')['default'];
 
-type Getter = (marker: ?string, limit: number) => Promise<RecursiveData>
+var _ = require('lodash');
+var assert = require('assert');
+var common = require('../common');
+var dropsToXrp = common.dropsToXrp;
 
-function clamp(value: number, min: number, max: number): number {
+function clamp(value, min, max) {
   assert(min <= max, 'Illegal clamp bounds');
   return Math.min(Math.max(value, min), max);
 }
 
-function getXRPBalance(connection: Connection, address: string,
-  ledgerVersion?: number
-): Promise<number> {
-  const request = {
-    command: 'account_info',
-    account: address,
-    ledger_index: ledgerVersion
-  };
-  return connection.request(request).then(data =>
-    dropsToXrp(data.account_data.Balance));
-}
-
-function getXRPModifyBalance(connection, address, ledgerVersion) {
+function getXRPBalance(connection, address, ledgerVersion) {
   var request = {
     command: 'account_info',
     account: address,
     ledger_index: ledgerVersion
   };
-
-  	
   return connection.request(request).then(function (data) {
-	return data;
+    return dropsToXrp(data.account_data.Balance);
   });
 }
 
 // If the marker is omitted from a response, you have reached the end
-function getRecursiveRecur(getter: Getter, marker?: string, limit: number
-): Promise {
-  return getter(marker, limit).then(data => {
-    const remaining = limit - data.results.length;
+function getRecursiveRecur(getter, marker, limit) {
+
+  return getter(marker, limit).then(function (data) {
+	debugger;
+
+    var remaining = limit - data.results.length;
     if (remaining > 0 && data.marker !== undefined) {
-      return getRecursiveRecur(getter, data.marker, remaining).then(results =>
-        data.results.concat(results)
-      );
+      return getRecursiveRecur(getter, data.marker, remaining).then(function (results) {
+	  	debugger;
+		console.log('*************************getRecursiveRecur***************************');
+        return data.results.concat(results);
+      });
     }
     return data.results.slice(0, limit);
   });
 }
 
-function getRecursive(getter: Getter, limit?: number): Promise {
+function getRecursive(getter, limit) {
   return getRecursiveRecur(getter, undefined, limit || Infinity);
 }
 
-function renameCounterpartyToIssuer(amount?: Issue): ?{issuer?: string} {
+function renameCounterpartyToIssuer(amount) {
   if (amount === undefined) {
     return undefined;
   }
-  const issuer = amount.counterparty === undefined ?
-    (amount.issuer !== undefined ? amount.issuer : undefined) :
-    amount.counterparty;
-  const withIssuer = _.assign({}, amount, {issuer: issuer});
+  var issuer = amount.counterparty === undefined ? amount.issuer !== undefined ? amount.issuer : undefined : amount.counterparty;
+  var withIssuer = _.assign({}, amount, { issuer: issuer });
   return _.omit(withIssuer, 'counterparty');
 }
 
-type RequestBookOffersArgs = {taker_gets: Issue, taker_pays: Issue}
-
-function renameCounterpartyToIssuerInOrder(order: RequestBookOffersArgs) {
-  const taker_gets = renameCounterpartyToIssuer(order.taker_gets);
-  const taker_pays = renameCounterpartyToIssuer(order.taker_pays);
-  const changes = {taker_gets: taker_gets, taker_pays: taker_pays};
+function renameCounterpartyToIssuerInOrder(order) {
+  var taker_gets = renameCounterpartyToIssuer(order.taker_gets);
+  var taker_pays = renameCounterpartyToIssuer(order.taker_pays);
+  var changes = { taker_gets: taker_gets, taker_pays: taker_pays };
   return _.assign({}, order, _.omit(changes, _.isUndefined));
 }
 
 function signum(num) {
-  return (num === 0) ? 0 : (num > 0 ? 1 : -1);
+  return num === 0 ? 0 : num > 0 ? 1 : -1;
 }
 
 /**
@@ -98,8 +77,7 @@ function signum(num) {
  *  @returns {Number} [-1, 0, 1]
  */
 
-function compareTransactions(first: TransactionType, second: TransactionType
-): number {
+function compareTransactions(first, second) {
   if (!first.outcome || !second.outcome) {
     return 0;
   }
@@ -109,41 +87,34 @@ function compareTransactions(first: TransactionType, second: TransactionType
   return first.outcome.ledgerVersion < second.outcome.ledgerVersion ? -1 : 1;
 }
 
-function hasCompleteLedgerRange(connection: Connection,
-  minLedgerVersion?: number, maxLedgerVersion?: number
-): Promise<boolean> {
-  const firstLedgerVersion = 32570; // earlier versions have been lost
-  return connection.hasLedgerVersions(
-    minLedgerVersion || firstLedgerVersion, maxLedgerVersion);
+function hasCompleteLedgerRange(connection, minLedgerVersion, maxLedgerVersion) {
+  var firstLedgerVersion = 32570; // earlier versions have been lost
+  return connection.hasLedgerVersions(minLedgerVersion || firstLedgerVersion, maxLedgerVersion);
 }
 
-function isPendingLedgerVersion(connection: Connection,
-  maxLedgerVersion: ?number
-): Promise<boolean> {
-  return connection.getLedgerVersion().then(ledgerVersion =>
-    ledgerVersion < (maxLedgerVersion || 0));
+function isPendingLedgerVersion(connection, maxLedgerVersion) {
+  return connection.getLedgerVersion().then(function (ledgerVersion) {
+    return ledgerVersion < (maxLedgerVersion || 0);
+  });
 }
 
-function ensureLedgerVersion(options: Object
-): Promise<number> {
-  if (Boolean(options) && options.ledgerVersion !== undefined &&
-    options.ledgerVersion !== null
-  ) {
-    return Promise.resolve(options);
+function ensureLedgerVersion(options) {
+  if (Boolean(options) && options.ledgerVersion !== undefined && options.ledgerVersion !== null) {
+    return _Promise.resolve(options);
   }
-  return this.getLedgerVersion().then(ledgerVersion =>
-    _.assign({}, options, {ledgerVersion}));
+  return this.getLedgerVersion().then(function (ledgerVersion) {
+    return _.assign({}, options, { ledgerVersion: ledgerVersion });
+  });
 }
 
 module.exports = {
-  getXRPBalance,
-  getXRPModifyBalance,
-  ensureLedgerVersion,
-  compareTransactions,
-  renameCounterpartyToIssuerInOrder,
-  getRecursive,
-  hasCompleteLedgerRange,
-  isPendingLedgerVersion,
+  getXRPBalance: getXRPBalance,
+  ensureLedgerVersion: ensureLedgerVersion,
+  compareTransactions: compareTransactions,
+  renameCounterpartyToIssuerInOrder: renameCounterpartyToIssuerInOrder,
+  getRecursive: getRecursive,
+  hasCompleteLedgerRange: hasCompleteLedgerRange,
+  isPendingLedgerVersion: isPendingLedgerVersion,
   clamp: clamp,
   common: common
 };

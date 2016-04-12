@@ -1,11 +1,13 @@
-/* @flow */
-'use strict';
-const _ = require('lodash');
-const utils = require('./utils');
-const {validate} = utils.common;
-import type {Submit} from './types.js';
 
-function isImmediateRejection(engineResult: string): boolean {
+'use strict';
+
+var _Promise = require('babel-runtime/core-js/promise')['default'];
+
+var _ = require('lodash');
+var utils = require('./utils');
+var validate = utils.common.validate;
+
+function isImmediateRejection(engineResult) {
   // note: "tel" errors mean the local server refused to process the
   // transaction *at that time*, but it could potentially buffer the
   // transaction and then process it at a later time, for example
@@ -16,7 +18,7 @@ function isImmediateRejection(engineResult: string): boolean {
 }
 
 function formatSubmitResponse(response) {
-  const data = {
+  var data = {
     resultCode: response.engine_result,
     resultMessage: response.engine_result_message
   };
@@ -26,10 +28,10 @@ function formatSubmitResponse(response) {
   return data;
 }
 
-function submit(signedTransaction: string): Promise<Submit> {
-  validate.submit({signedTransaction});
+function submit(signedTransaction) {
+  validate.submit({ signedTransaction: signedTransaction });
 
-  const request = {
+  var request = {
     command: 'submit',
     tx_blob: signedTransaction
   };

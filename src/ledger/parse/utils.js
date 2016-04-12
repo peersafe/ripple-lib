@@ -1,30 +1,27 @@
-/* @flow */
-'use strict';
-const _ = require('lodash');
-const transactionParser = require('ripple-lib-transactionparser');
-const utils = require('../utils');
-const BigNumber = require('bignumber.js');
 
-function adjustQualityForXRP(
-  quality: string, takerGetsCurrency: string, takerPaysCurrency: string
-) {
+'use strict';
+var _ = require('lodash');
+var transactionParser = require('ripple-lib-transactionparser');
+var utils = require('../utils');
+var BigNumber = require('bignumber.js');
+
+function adjustQualityForXRP(quality, takerGetsCurrency, takerPaysCurrency) {
   // quality = takerPays.value/takerGets.value
   // using drops (1e-6 XRP) for XRP values
-  const numeratorShift = (takerPaysCurrency === 'XRP' ? -6 : 0);
-  const denominatorShift = (takerGetsCurrency === 'XRP' ? -6 : 0);
-  const shift = numeratorShift - denominatorShift;
-  return shift === 0 ? quality :
-    (new BigNumber(quality)).shift(shift).toString();
+  var numeratorShift = takerPaysCurrency === 'XRP' ? -6 : 0;
+  var denominatorShift = takerGetsCurrency === 'XRP' ? -6 : 0;
+  var shift = numeratorShift - denominatorShift;
+  return shift === 0 ? quality : new BigNumber(quality).shift(shift).toString();
 }
 
-function parseQuality(quality: ?number) {
+function parseQuality(quality) {
   if (typeof quality === 'number') {
-    return (new BigNumber(quality)).shift(-9).toNumber();
+    return new BigNumber(quality).shift(-9).toNumber();
   }
   return undefined;
 }
 
-function parseTimestamp(rippleTime: number): string | void {
+function parseTimestamp(rippleTime) {
   return rippleTime ? utils.common.rippleTimeToISO8601(rippleTime) : undefined;
 }
 
@@ -35,26 +32,26 @@ function removeEmptyCounterparty(amount) {
 }
 
 function removeEmptyCounterpartyInBalanceChanges(balanceChanges) {
-  _.forEach(balanceChanges, (changes) => {
+  _.forEach(balanceChanges, function (changes) {
     _.forEach(changes, removeEmptyCounterparty);
   });
 }
 
 function removeEmptyCounterpartyInOrderbookChanges(orderbookChanges) {
-  _.forEach(orderbookChanges, (changes) => {
-    _.forEach(changes, (change) => {
+  _.forEach(orderbookChanges, function (changes) {
+    _.forEach(changes, function (change) {
       _.forEach(change, removeEmptyCounterparty);
     });
   });
 }
 
-function parseOutcome(tx: Object): ?Object {
-  const metadata = tx.meta || tx.metaData;
+function parseOutcome(tx) {
+  var metadata = tx.meta || tx.metaData;
   if (!metadata) {
     return undefined;
   }
-  const balanceChanges = transactionParser.parseBalanceChanges(metadata);
-  const orderbookChanges = transactionParser.parseOrderbookChanges(metadata);
+  var balanceChanges = transactionParser.parseBalanceChanges(metadata);
+  var orderbookChanges = transactionParser.parseOrderbookChanges(metadata);
   removeEmptyCounterpartyInBalanceChanges(balanceChanges);
   removeEmptyCounterpartyInOrderbookChanges(orderbookChanges);
 
@@ -69,15 +66,15 @@ function parseOutcome(tx: Object): ?Object {
   };
 }
 
-function hexToString(hex: string): ?string {
+function hexToString(hex) {
   return hex ? new Buffer(hex, 'hex').toString('utf-8') : undefined;
 }
 
-function parseMemos(tx: Object): ?Array<Object> {
+function parseMemos(tx) {
   if (!Array.isArray(tx.Memos) || tx.Memos.length === 0) {
     return undefined;
   }
-  return tx.Memos.map((m) => {
+  return tx.Memos.map(function (m) {
     return utils.common.removeUndefined({
       type: m.Memo.parsed_memo_type || hexToString(m.Memo.MemoType),
       format: m.Memo.parsed_memo_format || hexToString(m.Memo.MemoFormat),
@@ -87,12 +84,12 @@ function parseMemos(tx: Object): ?Array<Object> {
 }
 
 module.exports = {
-  parseQuality,
-  parseOutcome,
-  parseMemos,
-  hexToString,
-  parseTimestamp,
-  adjustQualityForXRP,
+  parseQuality: parseQuality,
+  parseOutcome: parseOutcome,
+  parseMemos: parseMemos,
+  hexToString: hexToString,
+  parseTimestamp: parseTimestamp,
+  adjustQualityForXRP: adjustQualityForXRP,
   dropsToXrp: utils.common.dropsToXrp,
   constants: utils.common.constants,
   txFlags: utils.common.txFlags,

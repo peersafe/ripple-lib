@@ -1,26 +1,13 @@
-/* @flow */
+
 'use strict';
-const utils = require('./utils');
-
-type Trustline = {
-  account: string, limit: number, currency: string, quality_in: ?number,
-  quality_out: ?number, no_ripple: boolean, freeze: boolean,
-  authorized: boolean, limit_peer: string, no_ripple_peer: boolean,
-  freeze_peer: boolean, peer_authorized: boolean, balance: any
-}
-
-type TrustlineSpecification = {}
-type TrustlineCounterParty = {}
-type TrustlineState = {balance: number}
-type AccountTrustline = {
-  specification: TrustlineSpecification, counterparty: TrustlineCounterParty,
-  state: TrustlineState
-}
+var utils = require('./utils');
 
 // rippled 'account_lines' returns a different format for
 // trustlines than 'tx'
-function parseAccountTrustline(trustline: Trustline): AccountTrustline {
-  const specification = utils.removeUndefined({
+function parseAccountTrustline(trustline) {
+console.log('******************parse111AccountTrustline******************************');
+console.log(trustline);
+  var specification = utils.removeUndefined({
     limit: trustline.limit,
     currency: trustline.currency,
     counterparty: trustline.account,
@@ -28,21 +15,19 @@ function parseAccountTrustline(trustline: Trustline): AccountTrustline {
     qualityOut: utils.parseQuality(trustline.quality_out) || undefined,
     ripplingDisabled: trustline.no_ripple || undefined,
     frozen: trustline.freeze || undefined,
-    authorized: trustline.authorized || undefined,
-    currencyname:trustline.currency_name,
-	currencysymbol:trustline.currency_symbol
+    authorized: trustline.authorized || undefined
   });
   // rippled doesn't provide the counterparty's qualities
-  const counterparty = utils.removeUndefined({
+  var counterparty = utils.removeUndefined({
     limit: trustline.limit_peer,
     ripplingDisabled: trustline.no_ripple_peer || undefined,
     frozen: trustline.freeze_peer || undefined,
     authorized: trustline.peer_authorized || undefined
   });
-  const state = {
+  var state = {
     balance: trustline.balance
   };
-  return {specification, counterparty, state};
+  return { specification: specification, counterparty: counterparty, state: state };
 }
 
 module.exports = parseAccountTrustline;

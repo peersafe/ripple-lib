@@ -1,24 +1,14 @@
-/* @flow */
+
 'use strict';
-const _ = require('lodash');
-const utils = require('./utils');
-const validate = utils.common.validate;
-import type {Instructions, Prepare} from './types.js';
-import type {Memo} from '../common/types.js';
 
-type SuspendedPaymentExecution = {
-  owner: string,
-  suspensionSequence: number,
-  memos?: Array<Memo>,
-  method?: number,
-  digest?: string,
-  proof?: string
-}
+var _Promise = require('babel-runtime/core-js/promise')['default'];
 
-function createSuspendedPaymentExecutionTransaction(account: string,
-      payment: SuspendedPaymentExecution
-): Object {
-  const txJSON: Object = {
+var _ = require('lodash');
+var utils = require('./utils');
+var validate = utils.common.validate;
+
+function createSuspendedPaymentExecutionTransaction(account, payment) {
+  var txJSON = {
     TransactionType: 'SuspendedPaymentFinish',
     Account: account,
     Owner: payment.owner,
@@ -40,14 +30,11 @@ function createSuspendedPaymentExecutionTransaction(account: string,
   return txJSON;
 }
 
-function prepareSuspendedPaymentExecution(address: string,
-  suspendedPaymentExecution: SuspendedPaymentExecution,
-  instructions: Instructions = {}
-): Promise<Prepare> {
-  validate.prepareSuspendedPaymentExecution(
-    {address, suspendedPaymentExecution, instructions});
-  const txJSON = createSuspendedPaymentExecutionTransaction(
-    address, suspendedPaymentExecution);
+function prepareSuspendedPaymentExecution(address, suspendedPaymentExecution) {
+  var instructions = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+
+  validate.prepareSuspendedPaymentExecution({ address: address, suspendedPaymentExecution: suspendedPaymentExecution, instructions: instructions });
+  var txJSON = createSuspendedPaymentExecutionTransaction(address, suspendedPaymentExecution);
   return utils.prepareTransaction(txJSON, this, instructions);
 }
 

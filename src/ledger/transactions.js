@@ -1,35 +1,23 @@
-/* @flow */
+
 /* eslint-disable max-params */
 'use strict';
-const _ = require('lodash');
-const binary = require('ripple-binary-codec');
-const {computeTransactionHash} = require('ripple-hashes');
-const utils = require('./utils');
-const parseTransaction = require('./parse/transaction');
-const getTransaction = require('./transaction');
-const {validate} = utils.common;
-import type {Connection} from '../common/connection.js';
-import type {TransactionType} from './transaction-types';
 
+var _Promise = require('babel-runtime/core-js/promise')['default'];
 
-type TransactionsOptions = {
-  start?: string,
-  limit?: number,
-  minLedgerVersion?: number,
-  maxLedgerVersion?: number,
-  earliestFirst?: boolean,
-  excludeFailures?: boolean,
-  initiated?: boolean,
-  counterparty?: string,
-  types?: Array<string>,
-  binary?: boolean,
-  startTx?: TransactionType
-}
+var _ = require('lodash');
+var binary = require('ripple-binary-codec');
 
-type GetTransactionsResponse = Array<TransactionType>
+var _require = require('ripple-hashes');
+
+var computeTransactionHash = _require.computeTransactionHash;
+
+var utils = require('./utils');
+var parseTransaction = require('./parse/transaction');
+var getTransaction = require('./transaction');
+var validate = utils.common.validate;
 
 function parseBinaryTransaction(transaction) {
-  const tx = binary.decode(transaction.tx_blob);
+  var tx = binary.decode(transaction.tx_blob);
   tx.hash = computeTransactionHash(tx);
   tx.ledger_index = transaction.ledger_index;
   return {
@@ -40,27 +28,19 @@ function parseBinaryTransaction(transaction) {
 }
 
 function parseAccountTxTransaction(tx) {
-  const _tx = tx.tx_blob ? parseBinaryTransaction(tx) : tx;
+  var _tx = tx.tx_blob ? parseBinaryTransaction(tx) : tx;
   // rippled uses a different response format for 'account_tx' than 'tx'
-  return parseTransaction(_.assign({}, _tx.tx,
-    {meta: _tx.meta, validated: _tx.validated}));
+  return parseTransaction(_.assign({}, _tx.tx, { meta: _tx.meta, validated: _tx.validated }));
 }
 
-function counterpartyFilter(filters, tx: TransactionType) {
-  if (tx.address === filters.counterparty || (
-    tx.specification && (
-      (tx.specification.destination &&
-        tx.specification.destination.address === filters.counterparty) ||
-      (tx.specification.counterparty === filters.counterparty)
-    ))) {
+function counterpartyFilter(filters, tx) {
+  if (tx.address === filters.counterparty || tx.specification && (tx.specification.destination && tx.specification.destination.address === filters.counterparty || tx.specification.counterparty === filters.counterparty)) {
     return true;
   }
   return false;
 }
 
-function transactionFilter(address: string, filters: TransactionsOptions,
-                           tx: TransactionType
-) {
+function transactionFilter(address, filters, tx) {
   if (filters.excludeFailures && tx.outcome.result !== 'tesSUCCESS') {
     return false;
   }
@@ -79,29 +59,21 @@ function transactionFilter(address: string, filters: TransactionsOptions,
   return true;
 }
 
-function orderFilter(options: TransactionsOptions, tx: TransactionType) {
-  return !options.startTx || (options.earliestFirst ?
-    utils.compareTransactions(tx, options.startTx) > 0 :
-    utils.compareTransactions(tx, options.startTx) < 0);
+function orderFilter(options, tx) {
+  return !options.startTx || (options.earliestFirst ? utils.compareTransactions(tx, options.startTx) > 0 : utils.compareTransactions(tx, options.startTx) < 0);
 }
 
-function formatPartialResponse(address: string,
-  options: TransactionsOptions, data
-) {
+function formatPartialResponse(address, options, data) {
   return {
     marker: data.marker,
-    results: data.transactions
-      .filter((tx) => tx.validated)
-      .map(parseAccountTxTransaction)
-      .filter(_.partial(transactionFilter, address, options))
-      .filter(_.partial(orderFilter, options))
+    results: data.transactions.filter(function (tx) {
+      return tx.validated;
+    }).map(parseAccountTxTransaction).filter(_.partial(transactionFilter, address, options)).filter(_.partial(orderFilter, options))
   };
 }
 
-function getAccountTx(connection: Connection, address: string,
-  options: TransactionsOptions, marker: string, limit: number
-) {
-  const request = {
+function getAccountTx(connection, address, options, marker, limit) {
+  var request = {
     command: 'account_tx',
     account: address,
     // -1 is equivalent to earliest available validated ledger
@@ -114,14 +86,14 @@ function getAccountTx(connection: Connection, address: string,
     marker: marker
   };
 
-  return connection.request(request).then(response =>
-    formatPartialResponse(address, options, response));
+  return connection.request(request).then(function (response) {
+    return formatPartialResponse(address, options, response);
+  });
 }
 
-function checkForLedgerGaps(connection: Connection,
-  options: TransactionsOptions, transactions: GetTransactionsResponse
-) {
-  let {minLedgerVersion, maxLedgerVersion} = options;
+function checkForLedgerGaps(connection, options, transactions) {
+  var minLedgerVersion = options.minLedgerVersion;
+  var maxLedgerVersion = options.maxLedgerVersion;
 
   // if we reached the limit on number of transactions, then we can shrink
   // the required ledger range to only guarantee that there are no gaps in
@@ -134,47 +106,44 @@ function checkForLedgerGaps(connection: Connection,
     }
   }
 
-  return utils.hasCompleteLedgerRange(connection, minLedgerVersion,
-    maxLedgerVersion).then(hasCompleteLedgerRange => {
-      if (!hasCompleteLedgerRange) {
-        throw new utils.common.errors.MissingLedgerHistoryError();
-      }
-    });
+  return utils.hasCompleteLedgerRange(connection, minLedgerVersion, maxLedgerVersion).then(function (hasCompleteLedgerRange) {
+    if (!hasCompleteLedgerRange) {
+      throw new utils.common.errors.MissingLedgerHistoryError();
+    }
+  });
 }
 
-function formatResponse(connection: Connection, options: TransactionsOptions,
-                        transactions: GetTransactionsResponse
-) {
-  const compare = options.earliestFirst ? utils.compareTransactions :
-    _.rearg(utils.compareTransactions, 1, 0);
-  const sortedTransactions = transactions.sort(compare);
-  return checkForLedgerGaps(connection, options, sortedTransactions).then(
-    () => sortedTransactions);
+function formatResponse(connection, options, transactions) {
+  var compare = options.earliestFirst ? utils.compareTransactions : _.rearg(utils.compareTransactions, 1, 0);
+  var sortedTransactions = transactions.sort(compare);
+  return checkForLedgerGaps(connection, options, sortedTransactions).then(function () {
+    return sortedTransactions;
+  });
 }
 
-function getTransactionsInternal(connection: Connection, address: string,
-                                 options: TransactionsOptions
-): Promise<GetTransactionsResponse> {
-  const getter = _.partial(getAccountTx, connection, address, options);
-  const format = _.partial(formatResponse, connection, options);
+function getTransactionsInternal(connection, address, options) {
+  var getter = _.partial(getAccountTx, connection, address, options);
+  var format = _.partial(formatResponse, connection, options);
   return utils.getRecursive(getter, options.limit).then(format);
 }
 
-function getTransactions(address: string, options: TransactionsOptions = {}
-): Promise<GetTransactionsResponse> {
-  validate.getTransactions({address, options});
+function getTransactions(address) {
+  var _this = this;
 
-  const defaults = {maxLedgerVersion: -1};
+  var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+
+  validate.getTransactions({ address: address, options: options });
+
+  var defaults = { maxLedgerVersion: -1 };
   if (options.start) {
-    return getTransaction.call(this, options.start).then(tx => {
-      const ledgerVersion = tx.outcome.ledgerVersion;
-      const bound = options.earliestFirst ?
-        {minLedgerVersion: ledgerVersion} : {maxLedgerVersion: ledgerVersion};
-      const newOptions = _.assign({}, defaults, options, {startTx: tx}, bound);
-      return getTransactionsInternal(this.connection, address, newOptions);
+    return getTransaction.call(this, options.start).then(function (tx) {
+      var ledgerVersion = tx.outcome.ledgerVersion;
+      var bound = options.earliestFirst ? { minLedgerVersion: ledgerVersion } : { maxLedgerVersion: ledgerVersion };
+      var newOptions = _.assign({}, defaults, options, { startTx: tx }, bound);
+      return getTransactionsInternal(_this.connection, address, newOptions);
     });
   }
-  const newOptions = _.assign({}, defaults, options);
+  var newOptions = _.assign({}, defaults, options);
   return getTransactionsInternal(this.connection, address, newOptions);
 }
 

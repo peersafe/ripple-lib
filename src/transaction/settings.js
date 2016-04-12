@@ -1,25 +1,28 @@
-/* @flow */
-'use strict';
-const _ = require('lodash');
-const assert = require('assert');
-const BigNumber = require('bignumber.js');
-const utils = require('./utils');
-const validate = utils.common.validate;
-const AccountFlagIndices = utils.common.constants.AccountFlagIndices;
-const AccountFields = utils.common.constants.AccountFields;
-import type {Instructions, Prepare} from './types.js';
-import type {Settings} from './settings-types.js';
+
 
 // Emptry string passed to setting will clear it
-const CLEAR_SETTING = null;
 
+'use strict';
 
-function setTransactionFlags(txJSON: Object, values: Settings) {
-  const keys = Object.keys(values);
+var _Object$keys = require('babel-runtime/core-js/object/keys')['default'];
+
+var _Promise = require('babel-runtime/core-js/promise')['default'];
+
+var _ = require('lodash');
+var assert = require('assert');
+var BigNumber = require('bignumber.js');
+var utils = require('./utils');
+var validate = utils.common.validate;
+var AccountFlagIndices = utils.common.constants.AccountFlagIndices;
+var AccountFields = utils.common.constants.AccountFields;
+var CLEAR_SETTING = null;
+
+function setTransactionFlags(txJSON, values) {
+  var keys = _Object$keys(values);
   assert(keys.length === 1, 'ERROR: can only set one setting per transaction');
-  const flagName = keys[0];
-  const value = values[flagName];
-  const index = AccountFlagIndices[flagName];
+  var flagName = keys[0];
+  var value = values[flagName];
+  var index = AccountFlagIndices[flagName];
   if (index !== undefined) {
     if (value) {
       txJSON.SetFlag = index;
@@ -29,11 +32,11 @@ function setTransactionFlags(txJSON: Object, values: Settings) {
   }
 }
 
-function setTransactionFields(txJSON: Object, input: Settings) {
-  const fieldSchema = AccountFields;
-  for (const fieldName in fieldSchema) {
-    const field = fieldSchema[fieldName];
-    let value = input[field.name];
+function setTransactionFields(txJSON, input) {
+  var fieldSchema = AccountFields;
+  for (var fieldName in fieldSchema) {
+    var field = fieldSchema[fieldName];
+    var value = input[field.name];
 
     if (value === undefined) {
       continue;
@@ -66,11 +69,11 @@ function setTransactionFields(txJSON: Object, input: Settings) {
  *                           are returned
  */
 
-function convertTransferRate(transferRate: number | string): number | string {
-  return (new BigNumber(transferRate)).shift(9).toNumber();
+function convertTransferRate(transferRate) {
+  return new BigNumber(transferRate).shift(9).toNumber();
 }
 
-function formatSignerEntry(signer: Object): Object {
+function formatSignerEntry(signer) {
   return {
     SignerEntry: {
       Account: signer.address,
@@ -79,18 +82,16 @@ function formatSignerEntry(signer: Object): Object {
   };
 }
 
-function createSettingsTransactionWithoutMemos(
-  account: string, settings: Settings
-): Object {
+function createSettingsTransactionWithoutMemos(account, settings) {
   if (settings.regularKey !== undefined) {
-    const removeRegularKey = {
+    var removeRegularKey = {
       TransactionType: 'SetRegularKey',
       Account: account
     };
     if (settings.regularKey === null) {
       return removeRegularKey;
     }
-    return _.assign({}, removeRegularKey, {RegularKey: settings.regularKey});
+    return _.assign({}, removeRegularKey, { RegularKey: settings.regularKey });
   }
 
   if (settings.signers !== undefined) {
@@ -102,7 +103,7 @@ function createSettingsTransactionWithoutMemos(
     };
   }
 
-  const txJSON: Object = {
+  var txJSON = {
     TransactionType: 'AccountSet',
     Account: account
   };
@@ -116,20 +117,19 @@ function createSettingsTransactionWithoutMemos(
   return txJSON;
 }
 
-function createSettingsTransaction(account: string, settings: Settings
-): Object {
-  const txJSON = createSettingsTransactionWithoutMemos(account, settings);
+function createSettingsTransaction(account, settings) {
+  var txJSON = createSettingsTransactionWithoutMemos(account, settings);
   if (settings.memos !== undefined) {
     txJSON.Memos = _.map(settings.memos, utils.convertMemo);
   }
   return txJSON;
 }
 
-function prepareSettings(address: string, settings: Settings,
-    instructions: Instructions = {}
-): Promise<Prepare> {
-  validate.prepareSettings({address, settings, instructions});
-  const txJSON = createSettingsTransaction(address, settings);
+function prepareSettings(address, settings) {
+  var instructions = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+
+  validate.prepareSettings({ address: address, settings: settings, instructions: instructions });
+  var txJSON = createSettingsTransaction(address, settings);
   return utils.prepareTransaction(txJSON, this, instructions);
 }
 
