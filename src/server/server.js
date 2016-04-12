@@ -10,7 +10,6 @@ function isConnected() {
 }
 
 function getLedgerVersion() {
-  debugger;
   return this.connection.getLedgerVersion();
 }
 

@@ -10,18 +10,13 @@ var _utils$common = utils.common;
 var validate = _utils$common.validate;
 var errors = _utils$common.errors;
 
-function attachTransactionDate(connection, tx) {  
-  console.log("-------------------attachTransactionDate---------------------");
-  console.log(tx);
+function attachTransactionDate(connection, tx) {
   if (tx.date) {
-  	console.log('------------------------');
-	debugger;
     return _Promise.resolve(tx);
   }
 
   if (!tx.ledger_index) {
     return new _Promise(function () {
-		console.log('------------ledger_index not found in tx------------------');
       throw new errors.NotFoundError('ledger_index not found in tx');
     });
   }
@@ -32,8 +27,6 @@ function attachTransactionDate(connection, tx) {
   };
 
   return connection.request(request).then(function (data) {
-  	console.log("----------------data--------------------");
-	console.log(data);
     if (typeof data.ledger.close_time === 'number') {
       return _.assign({ date: data.ledger.close_time }, tx);
     }
@@ -75,7 +68,6 @@ function formatResponse(options, tx) {
 function getTransaction(id) {
   var _this = this;
 
-console.log("getTransaction in lib");
   var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
   validate.getTransaction({ id: id, options: options });
@@ -86,15 +78,25 @@ console.log("getTransaction in lib");
     binary: false
   };
 
-  return utils.ensureLedgerVersion.call(this, options).then(function (_options) {
+debugger;
+ return _this.connection.request(request).then(function (tx) {
+	  console.log('---------------tx-------------------');
+	  console.log(tx);
+	  return tx;
+	  });
+  /*return utils.ensureLedgerVersion.call(this, options).then(function (_options) {
     return _this.connection.request(request).then(function (tx) {
-      return attachTransactionDate(_this.connection, tx);
+	  console.log('---------------tx-------------------');
+	  console.log(tx);
+	  return tx;
+      //return attachTransactionDate(_this.connection, tx);
     }).then(_.partial(formatResponse, _options))['catch'](function (error) {
       return convertError(_this.connection, _options, error).then(function (_error) {
         throw _error;
       });
     });
   });
+*/
 }
 
 module.exports = getTransaction;

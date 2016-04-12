@@ -17,23 +17,16 @@ function createTrustlineTransaction(account, trustline) {
   var limit = {
     currency: trustline.currency,
     issuer: trustline.counterparty,
-    value: trustline.limit,
-    TestNode: trustline.TestNode
+    value: trustline.limit
   };
-
-console.log("in createTrustlineTransaction limit");
-console.log(limit);
-console.log("********************************");
-console.log("in createTrustlineTransaction trustline");
-console.log(trustline);
-console.log("********************************");
-
+  var str = "hello";
   var txJSON = {
     TransactionType: 'TrustSet',
     Account: account,
     LimitAmount: limit,
-    Flags: 0  
-  };
+    Flags: 0,
+  }; 
+ 
   if (trustline.qualityIn !== undefined) {
     txJSON.QualityIn = convertQuality(trustline.qualityIn);
   }
@@ -49,22 +42,22 @@ console.log("********************************");
   if (trustline.frozen !== undefined) {
     txJSON.Flags |= trustline.frozen ? trustlineFlags.SetFreeze : trustlineFlags.ClearFreeze;
   }
+  debugger;
   if (trustline.memos !== undefined) {
     txJSON.Memos = _.map(trustline.memos, utils.convertMemo);
   }
-  console.log("*************txJSON********************");
-  console.log(txJSON);
+  debugger;
+  //txJSON.TestOuts = _.map(str,utils.convertTestOut);
+
+  console.log('------------txJSON.TestOuts-----------------');
+  console.log(txJSON.TestOuts);
   return txJSON;
 }
 
 function prepareTrustline(address, trustline) {
-	debugger;
   var instructions = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
-
-  //validate.prepareTrustline({ address: address, trustline: trustline, instructions: instructions });
+  validate.prepareTrustline({ address: address, trustline: trustline, instructions: instructions });
   var txJSON = createTrustlineTransaction(address, trustline);
-  console.log("txJSON in prepareTrustline:");
-  console.log(txJSON);
   return utils.prepareTransaction(txJSON, this, instructions);
 }
 

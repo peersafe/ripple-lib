@@ -71,7 +71,6 @@ var Connection = (function (_EventEmitter) {
   _createClass(Connection, [{
     key: '_updateLedgerVersions',
     value: function _updateLedgerVersions(data) {
-    console.log("this._ledgerVersion"+Number(data.ledger_index));
       this._ledgerVersion = Number(data.ledger_index);
       if (data.validated_ledgers) {
         this._availableLedgerVersions.reset();
@@ -93,7 +92,6 @@ var Connection = (function (_EventEmitter) {
         return [data.id.toString(), data];
       } else if (isStreamMessageType(data.type)) {
         if (data.type === 'ledgerClosed') {
-	      console.log("ledgerClosed");
           this._updateLedgerVersions(data);
         }
         return [data.type, data];
@@ -140,9 +138,7 @@ var Connection = (function (_EventEmitter) {
         command: 'subscribe',
         streams: ['ledger']
       };
-	  debugger;
       return this.request(request).then(function (data) {
-	  	console.log("request");
         _this._updateLedgerVersions(data);
         _this._isReady = true;
         _this.emit('connected');

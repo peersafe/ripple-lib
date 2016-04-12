@@ -12,22 +12,23 @@ var validate = utils.common.validate;
 
 function computeSignature(tx, privateKey, signAs) {
   var signingData = signAs ? binary.encodeForMultisigning(tx, signAs) : binary.encodeForSigning(tx);
+  //console.log('**********signingData**************');
+  //console.log(signingData);
+  debugger;
   return keypairs.sign(signingData, privateKey);
 }
 
 function sign(txJSON, secret) {
+	debugger;
   var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
-  console.log("*****************txJSON********************");
-  console.log(txJSON);
   validate.sign({ txJSON: txJSON, secret: secret });
   // we can't validate that the secret matches the account because
   // the secret could correspond to the regular key
-
+debugger;
   var tx = JSON.parse(txJSON);
-  console.log("*****************tx********************");
-  console.log(tx);
-  
+  //console.log("****************in sign********************");
+  //console.log(tx);
   if (tx.TxnSignature || tx.Signers) {
     throw new utils.common.errors.ValidationError('txJSON must not contain "TxnSignature" or "Signers" properties');
   }
@@ -45,12 +46,17 @@ function sign(txJSON, secret) {
   } else {
     tx.TxnSignature = computeSignature(tx, keypair.privateKey);
   }
-
+  //console.log("****************in sign********************");
+  //console.log(tx);
   var serialized = binary.encode(tx);
+  var tmp = binary.decode(serialized);
+  console.log("**********decode************");
+  console.log(tmp);
   return {
     signedTransaction: serialized,
     id: computeBinaryTransactionHash(serialized)
   };
+  
 }
 
 module.exports = sign;

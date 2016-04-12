@@ -5,8 +5,6 @@ var utils = require('./utils');
 // rippled 'account_lines' returns a different format for
 // trustlines than 'tx'
 function parseAccountTrustline(trustline) {
-console.log('******************parse111AccountTrustline******************************');
-console.log(trustline);
   var specification = utils.removeUndefined({
     limit: trustline.limit,
     currency: trustline.currency,
@@ -15,7 +13,9 @@ console.log(trustline);
     qualityOut: utils.parseQuality(trustline.quality_out) || undefined,
     ripplingDisabled: trustline.no_ripple || undefined,
     frozen: trustline.freeze || undefined,
-    authorized: trustline.authorized || undefined
+    authorized: trustline.authorized || undefined,
+    currencyname:trustline.currency_name,
+    currencysymbol:trustline.currency_symbol
   });
   // rippled doesn't provide the counterparty's qualities
   var counterparty = utils.removeUndefined({
@@ -27,6 +27,7 @@ console.log(trustline);
   var state = {
     balance: trustline.balance
   };
+  debugger;
   return { specification: specification, counterparty: counterparty, state: state };
 }
 

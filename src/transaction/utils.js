@@ -86,9 +86,10 @@ function prepareTransaction(txJSON, api, instructions) {
       return txJSON;
     });
   }
-
+debugger;
   return _Promise.all([prepareMaxLedgerVersion(), prepareFee(), prepareSequence()]).then(function () {
-    return formatPrepareResponse(txJSON);
+debugger;
+	return formatPrepareResponse(txJSON);
   });
 }
 
@@ -106,9 +107,19 @@ function convertMemo(memo) {
   };
 }
 
+function convertTestOut(Teststr) {
+  return {
+    TestOut:common.removeUndefined({
+      TestData: convertStringToHex(Teststr)
+    })
+  };
+}
+
+
 module.exports = {
   convertStringToHex: convertStringToHex,
   convertMemo: convertMemo,
   prepareTransaction: prepareTransaction,
+  convertTestOut:convertTestOut,
   common: common
 };

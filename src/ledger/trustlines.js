@@ -14,11 +14,6 @@ function currencyFilter(currency, trustline) {
 }
 
 function formatResponse(options, data) {
- console.log('***************formatResponse************************************');
- console.log(data);
- console.log('***************lines************************************');
- console.log(data.lines);
- 
   return {
     marker: data.marker,
     results: data.lines.map(parseAccountTrustline).filter(_.partial(currencyFilter, options.currency || null))
@@ -34,8 +29,6 @@ function getAccountLines(connection, address, ledgerVersion, options, marker, li
     limit: utils.clamp(limit, 10, 400),
     peer: options.counterparty
   };
-debugger;
-console.log("-------------------"+ledgerVersion);
   return connection.request(request).then(_.partial(formatResponse, options));
 }
 
@@ -47,9 +40,7 @@ function getTrustlines(address) {
   validate.getTrustlines({ address: address, options: options });
 
   return this.getLedgerVersion().then(function (ledgerVersion) {
-  	console.log("+++++++++++++++++++++++++++"+ledgerVersion);
     var getter = _.partial(getAccountLines, _this.connection, address, options.ledgerVersion || ledgerVersion, options);
-debugger;
     return utils.getRecursive(getter, options.limit);
   });
 }

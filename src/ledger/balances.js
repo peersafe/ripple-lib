@@ -4,22 +4,27 @@
 var _Promise = require('babel-runtime/core-js/promise')['default'];
 
 var utils = require('./utils');
+var commonutils = require('../common/utils.js');
 var validate = utils.common.validate;
 
 function getTrustlineBalanceAmount(trustline) {
   return {
     currency: trustline.specification.currency,
     counterparty: trustline.specification.counterparty,
-    value: trustline.state.balance
+    value: trustline.state.balance,
+    currencyname:trustline.specification.currencyname,
+    currencysymbol:trustline.specification.currencysymbol,
   };
 }
 
 function formatBalances(options, balances) {
-  var result = balances.trustlines.map(getTrustlineBalanceAmount);
+  var result = balances.trustlines.map(getTrustlineBalanceAmount); 
   if (!(options.counterparty || options.currency && options.currency !== 'XRP')) {
     var xrpBalance = {
       currency: 'XRP',
-      value: balances.xrp
+      value: balances.xrp,
+      realneme:balances.clientname,
+      addressbook:balances.address,
     };
     result.unshift(xrpBalance);
   }
@@ -27,6 +32,7 @@ function formatBalances(options, balances) {
     var toRemove = result.length - options.limit;
     result.splice(-toRemove, toRemove);
   }
+
   return result;
 }
 
@@ -37,18 +43,26 @@ function getLedgerVersionHelper(connection, optionValue) {
   return connection.getLedgerVersion();
 }
 
+
+
+
 function getBalances(address) {
   var _this = this;
-debugger;
+
   var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+  var realname;
+  var addressbook;
+	
   validate.getTrustlines({ address: address, options: options });
 
   return _Promise.all([getLedgerVersionHelper(this.connection, options.ledgerVersion).then(function (ledgerVersion) {
-    return utils.getXRPBalance(_this.connection, address, ledgerVersion);
-  }), this.getTrustlines(address, options)]).then(function (results) {
-  debugger;
-  console.log(results[3]);
-    return formatBalances(options, { xrp: results[0], trustlines: results[1] });
+    return utils.getXRPModifyBalance(_this.connection, address, ledgerVersion)
+		.then(function(data){
+		realname = data.account_data.RealName;
+		addressbook = data.account_data.AddressBook;
+	    return commonutils.dropsToXrp(data.account_data.Balance);
+	})}), this.getTrustlines(address, options)]).then(function (results) {
+    return formatBalances(options, { xrp: results[0], trustlines: results[1] ,clientname:realname,address:addressbook});
   });
 }
 

@@ -19,22 +19,31 @@ function getXRPBalance(connection, address, ledgerVersion) {
     account: address,
     ledger_index: ledgerVersion
   };
+
   return connection.request(request).then(function (data) {
-    return dropsToXrp(data.account_data.Balance);
+	return dropsToXrp(data.account_data.Balance);
+  });
+}
+
+function getXRPModifyBalance(connection, address, ledgerVersion) {
+  var request = {
+    command: 'account_info',
+    account: address,
+    ledger_index: ledgerVersion
+  };
+
+  	
+  return connection.request(request).then(function (data) {
+	return data
   });
 }
 
 // If the marker is omitted from a response, you have reached the end
 function getRecursiveRecur(getter, marker, limit) {
-
   return getter(marker, limit).then(function (data) {
-	debugger;
-
     var remaining = limit - data.results.length;
     if (remaining > 0 && data.marker !== undefined) {
       return getRecursiveRecur(getter, data.marker, remaining).then(function (results) {
-	  	debugger;
-		console.log('*************************getRecursiveRecur***************************');
         return data.results.concat(results);
       });
     }
@@ -109,6 +118,7 @@ function ensureLedgerVersion(options) {
 
 module.exports = {
   getXRPBalance: getXRPBalance,
+  getXRPModifyBalance:getXRPModifyBalance,
   ensureLedgerVersion: ensureLedgerVersion,
   compareTransactions: compareTransactions,
   renameCounterpartyToIssuerInOrder: renameCounterpartyToIssuerInOrder,
