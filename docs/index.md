@@ -61,6 +61,8 @@
 - [API Events](#api-events)
   - [ledger](#ledger)
   - [error](#error)
+  - [connected](#connected)
+  - [disconnected](#disconnected)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -89,6 +91,14 @@ const api = new RippleAPI({
 });
 api.on('error', (errorCode, errorMessage) => {
   console.log(errorCode + ': ' + errorMessage);
+});
+api.on('connected', () => {
+  console.log('connected');
+});
+api.on('disconnected', (code) => {
+  // code - [close code](https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent) sent by the server
+  // will be 1000 if this was normal closure
+  console.log('disconnected, code:', code);
 });
 api.connect().then(() => {
   /* insert code here */
@@ -138,7 +148,7 @@ If you omit the `server` parameter, RippleAPI operates [offline](#offline-functi
 
 1. Install [NodeJS](https://nodejs.org) and the Node Package Manager (npm). Most Linux distros have a package for NodeJS, but make sure you have version `0.12.0` or higher.
 2. Use npm to install [Babel](https://babeljs.io/) globally:
-      `npm install -g babel`
+      `npm install -g babel-cli`
 3. Use npm to install RippleAPI:
       `npm install ripple-lib`
 
@@ -201,7 +211,7 @@ A *value* is a quantity of a currency represented as a decimal string. Be carefu
 
 **XRP** has 6 significant digits past the decimal point. In other words, XRP cannot be divided into positive values smaller than `0.000001` (1e-6). XRP has a maximum value of `100000000000` (1e11).
 
-**Non-XRP values** have 15 decimal digits of precision, with a maximum value of `9999999999999999e80`. The smallest positive non-XRP value is `1e-81`.
+**Non-XRP values** have 16 decimal digits of precision, with a maximum value of `9999999999999999e80`. The smallest positive non-XRP value is `1e-81`.
 
 
 ## Amount
@@ -811,7 +821,7 @@ Name | Type | Description
 id | [id](#transaction-id) | A hash of the transaction that can be used to identify it.
 address | [address](#ripple-address) | The address of the account that initiated the transaction.
 sequence | [sequence](#account-sequence-number) | The account sequence number of the transaction for the account that initiated it.
-type | [transactionType](#transaction-types) | The type of the tranasction.
+type | [transactionType](#transaction-types) | The type of the transaction.
 specification | object | A specification that would produce the same outcome as this transaction. The structure of the specification depends on the value of the `type` field (see [Transaction Types](#transaction-types) for details). *Note:* This is **not** necessarily the same as the original specification.
 outcome | object | The outcome of the transaction (what effects it had).
 *outcome.* result | string | Result code returned by rippled. See [Transaction Results](https://ripple.com/build/transactions/#full-transaction-response-list) for a complete list.
@@ -828,6 +838,7 @@ outcome | object | The outcome of the transaction (what effects it had).
 *outcome.orderbookChanges.\*[].* makerExchangeRate | [value](#value) | *Optional* The exchange rate between the `quantity` currency and the `totalPrice` currency from the point of view of the maker.
 *outcome.* ledgerVersion | integer | The ledger version that the transaction was validated in.
 *outcome.* indexInLedger | integer | The ordering index of the transaction in the ledger.
+*outcome.* deliveredAmount | [amount](#amount) | *Optional* For payment transactions, it is impossible to reliably compute the actual delivered amount from the balanceChanges due to fixed precision. If the payment is not a partial payment and the transaction succeeded, the deliveredAmount should always be considered to be the amount specified in the transaction.
 *outcome.* timestamp | date-time string | *Optional* The timestamp when the transaction was validated. (May be missing when requesting transactions in binary mode.)
 
 ### Example
@@ -867,6 +878,11 @@ return api.getTransaction(id).then(transaction => {
     "result": "tesSUCCESS",
     "timestamp": "2013-03-12T23:56:50.000Z",
     "fee": "0.00001",
+    "deliveredAmount": {
+      "currency": "USD",
+      "value": "0.001",
+      "counterparty": "rMH4UxPrbuMa1spCBR98hLLyNJp4d8p4tM"
+    },
     "balanceChanges": {
       "rpZc4mVfWUif9CRoHRKKcmhu1nx2xktxBo": [
         {
@@ -1001,6 +1017,11 @@ return api.getTransactions(address).then(transaction => {
     "outcome": {
       "result": "tesSUCCESS",
       "fee": "0.00001",
+      "deliveredAmount": {
+        "currency": "USD",
+        "value": "0.001",
+        "counterparty": "rMH4UxPrbuMa1spCBR98hLLyNJp4d8p4tM"
+      },
       "balanceChanges": {
         "rpZc4mVfWUif9CRoHRKKcmhu1nx2xktxBo": [
           {
@@ -1093,6 +1114,11 @@ return api.getTransactions(address).then(transaction => {
     "outcome": {
       "result": "tesSUCCESS",
       "fee": "0.00001",
+      "deliveredAmount": {
+        "currency": "USD",
+        "value": "0.001",
+        "counterparty": "rMH4UxPrbuMa1spCBR98hLLyNJp4d8p4tM"
+      },
       "balanceChanges": {
         "rpZc4mVfWUif9CRoHRKKcmhu1nx2xktxBo": [
           {
@@ -2908,7 +2934,7 @@ const trustline = {
     }
   ]
 };
-return api.preparePayment(address, trustline).then(prepared =>
+return api.prepareTrustline(address, trustline).then(prepared =>
   {/* ... */});
 ```
 
@@ -3391,7 +3417,7 @@ This method returns an object with the following structure:
 
 Name | Type | Description
 ---- | ---- | -----------
-resultCode | string | The result code returned by rippled. [List of tranasction responses](http://pages.lightthenight.org/gba/SanFran15/ripple)
+resultCode | string | The result code returned by rippled. [List of transaction responses](https://ripple.com/build/transactions/#full-transaction-response-list)
 resultMessage | string | Human-readable explanation of the status of the transaction.
 
 ### Example
@@ -3575,5 +3601,37 @@ api.on('error', (errorCode, errorMessage, data) => {
 
 ```
 tooBusy: The server is too busy to help you now.
+```
+
+## connected
+
+This event is emitted after connection successfully opened.
+
+### Example
+
+```javascript
+api.on('connected', () => {
+  console.log('Connection is open now.');
+});
+```
+
+## disconnected
+
+This event is emitted when connection is closed.
+
+### Return Value
+
+The only parameter is a number containing the [close code](https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent) send by the server.
+
+### Example
+
+```javascript
+api.on('disconnected', (code) => {
+  if (code !== 1000) {
+    console.log('Connection is closed due to error.');
+  } else {
+    console.log('Connection is closed normally.');
+  }
+});
 ```
 

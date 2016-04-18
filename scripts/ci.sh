@@ -15,7 +15,7 @@ typecheck() {
 
 lint() {
   echo "eslint $(node_modules/.bin/eslint --version)"
-  npm list babel-eslint | grep babel-eslint
+  npm list babel-eslint
   REPO_URL="https://raw.githubusercontent.com/ripple/javascript-style-guide"
   curl "$REPO_URL/es6/eslintrc" > ./eslintrc
   echo "parser: babel-eslint" >> ./eslintrc
@@ -24,6 +24,7 @@ lint() {
 
 unittest() {
   # test "src"
+  mocha test --reporter mocha-junit-reporter --reporter-options mochaFile=$CIRCLE_TEST_REPORTS/test-results.xml
   npm test --coverage
   npm run coveralls
 
@@ -33,12 +34,33 @@ unittest() {
   mkdir -p test-compiled/node_modules
   ln -nfs ../../dist/npm test-compiled/node_modules/ripple-api
   mocha --opts test-compiled/mocha.opts test-compiled
+
+  # compile tests for browser testing
+  gulp build-min build-tests
+  node --harmony test-compiled/mocked-server.js > /dev/null &
+
+  echo "Running tests in PhantomJS"
+  mocha-phantomjs test/localrunner.html
+  echo "Running tests using minified version in PhantomJS"
+  mocha-phantomjs test/localrunnermin.html
+
+  echo "Running tests in SauceLabs"
+  http-server &
+  npm run sauce
+
+  pkill -f mocked-server.js
+  pkill -f http-server
   rm -rf test-compiled
 }
 
 integrationtest() {
   mocha test/integration/integration-test.js
   mocha test/integration/http-integration-test.js
+
+  # run integration tests in PhantomJS
+  gulp build-tests build-min
+  echo "Running integragtion tests in PhantomJS"
+  mocha-phantomjs test/localintegrationrunner.html
 }
 
 doctest() {
