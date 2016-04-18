@@ -1,26 +1,27 @@
-
+/* @flow */
 'use strict';
-var assert = require('assert');
-var utils = require('./utils');
-var parseAmount = require('./amount');
-var flags = utils.txFlags.OfferCreate;
+const assert = require('assert');
+const utils = require('./utils');
+const parseAmount = require('./amount');
+const flags = utils.txFlags.OfferCreate;
 
-function parseOrder(tx) {
+function parseOrder(tx: Object): Object {
   assert(tx.TransactionType === 'OfferCreate');
 
-  var direction = (tx.Flags & flags.Sell) === 0 ? 'buy' : 'sell';
-  var takerGetsAmount = parseAmount(tx.TakerGets);
-  var takerPaysAmount = parseAmount(tx.TakerPays);
-  var quantity = direction === 'buy' ? takerPaysAmount : takerGetsAmount;
-  var totalPrice = direction === 'buy' ? takerGetsAmount : takerPaysAmount;
+  const direction = (tx.Flags & flags.Sell) === 0 ? 'buy' : 'sell';
+  const takerGetsAmount = parseAmount(tx.TakerGets);
+  const takerPaysAmount = parseAmount(tx.TakerPays);
+  const quantity = (direction === 'buy') ? takerPaysAmount : takerGetsAmount;
+  const totalPrice = (direction === 'buy') ? takerGetsAmount : takerPaysAmount;
 
   return utils.removeUndefined({
     direction: direction,
     quantity: quantity,
     totalPrice: totalPrice,
-    passive: (tx.Flags & flags.Passive) !== 0 || undefined,
-    immediateOrCancel: (tx.Flags & flags.ImmediateOrCancel) !== 0 || undefined,
-    fillOrKill: (tx.Flags & flags.FillOrKill) !== 0 || undefined,
+    passive: ((tx.Flags & flags.Passive) !== 0) || undefined,
+    immediateOrCancel: ((tx.Flags & flags.ImmediateOrCancel) !== 0)
+      || undefined,
+    fillOrKill: ((tx.Flags & flags.FillOrKill) !== 0) || undefined,
     expirationTime: utils.parseTimestamp(tx.Expiration)
   });
 }

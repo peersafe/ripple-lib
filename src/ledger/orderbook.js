@@ -1,17 +1,44 @@
-
+/* @flow */
 'use strict';
+const _ = require('lodash');
+const utils = require('./utils');
+const {validate} = utils.common;
+const parseOrderbookOrder = require('./parse/orderbook-order');
+import type {Connection} from '../common/connection.js';
+import type {OrdersOptions, OrderSpecification} from './types.js';
+import type {Amount, Issue} from '../common/types.js';
 
-var _Promise = require('babel-runtime/core-js/promise')['default'];
+type Orderbook = {
+  base: Issue,
+  counter: Issue
+}
 
-var _ = require('lodash');
-var utils = require('./utils');
-var validate = utils.common.validate;
+type OrderbookItem = {
+   specification: OrderSpecification,
+   properties: {
+    maker: string,
+    sequence: number,
+    makerExchangeRate: string
+  },
+  state?: {
+    fundedAmount: Amount,
+    priceOfFundedAmount: Amount
+  }
+}
 
-var parseOrderbookOrder = require('./parse/orderbook-order');
+type OrderbookOrders = Array<OrderbookItem>
+
+type GetOrderbook = {
+  bids: OrderbookOrders,
+  asks: OrderbookOrders
+}
 
 // account is to specify a "perspective", which affects which unfunded offers
 // are returned
-function getBookOffers(connection, account, ledgerVersion, limit, takerGets, takerPays) {
+function getBookOffers(connection: Connection, account: string,
+    ledgerVersion?: number, limit?: number, takerGets: Issue,
+    takerPays: Issue
+): Promise {
   return connection.request(utils.renameCounterpartyToIssuerInOrder({
     command: 'book_offers',
     taker_gets: takerGets,
@@ -19,36 +46,34 @@ function getBookOffers(connection, account, ledgerVersion, limit, takerGets, tak
     ledger_index: ledgerVersion || 'validated',
     limit: limit,
     taker: account
-  })).then(function (data) {
-    return data.offers;
-  });
+  })).then(data => data.offers);
 }
 
-function isSameIssue(a, b) {
+function isSameIssue(a: Amount, b: Amount) {
   return a.currency === b.currency && a.counterparty === b.counterparty;
 }
 
-function directionFilter(direction, order) {
+function directionFilter(direction: string, order: OrderbookItem) {
   return order.specification.direction === direction;
 }
 
-function flipOrder(order) {
-  var specification = order.specification;
-  var flippedSpecification = {
+function flipOrder(order: OrderbookItem) {
+  const specification = order.specification;
+  const flippedSpecification = {
     quantity: specification.totalPrice,
     totalPrice: specification.quantity,
     direction: specification.direction === 'buy' ? 'sell' : 'buy'
   };
-  var newSpecification = _.merge({}, specification, flippedSpecification);
-  return _.merge({}, order, { specification: newSpecification });
+  const newSpecification = _.merge({}, specification, flippedSpecification);
+  return _.merge({}, order, {specification: newSpecification});
 }
 
-function alignOrder(base, order) {
-  var quantity = order.specification.quantity;
+function alignOrder(base: Amount, order: OrderbookItem) {
+  const quantity = order.specification.quantity;
   return isSameIssue(quantity, base) ? order : flipOrder(order);
 }
 
-function formatBidsAndAsks(orderbook, offers) {
+function formatBidsAndAsks(orderbook: Orderbook, offers) {
   // the "base" currency is the currency that you are buying or selling
   // the "counter" is the currency that the "base" is priced in
   // a "bid"/"ask" is an order to buy/sell the base, respectively
@@ -59,24 +84,24 @@ function formatBidsAndAsks(orderbook, offers) {
   // for asks: lowest quality => lowest totalPrice/quantity => lowest price
   // for both bids and asks, lowest quality is closest to mid-market
   // we sort the orders so that earlier orders are closer to mid-market
-  var orders = _.sortBy(offers, 'quality').map(parseOrderbookOrder);
-  var alignedOrders = orders.map(_.partial(alignOrder, orderbook.base));
-  var bids = alignedOrders.filter(_.partial(directionFilter, 'buy'));
-  var asks = alignedOrders.filter(_.partial(directionFilter, 'sell'));
-  return { bids: bids, asks: asks };
+  const orders = _.sortBy(offers, 'quality').map(parseOrderbookOrder);
+  const alignedOrders = orders.map(_.partial(alignOrder, orderbook.base));
+  const bids = alignedOrders.filter(_.partial(directionFilter, 'buy'));
+  const asks = alignedOrders.filter(_.partial(directionFilter, 'sell'));
+  return {bids, asks};
 }
 
-function getOrderbook(address, orderbook) {
-  var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+function getOrderbook(address: string, orderbook: Orderbook,
+    options: OrdersOptions = {}
+): Promise<GetOrderbook> {
+  validate.getOrderbook({address, orderbook, options});
 
-  validate.getOrderbook({ address: address, orderbook: orderbook, options: options });
-
-  var getter = _.partial(getBookOffers, this.connection, address, options.ledgerVersion, options.limit);
-  var getOffers = _.partial(getter, orderbook.base, orderbook.counter);
-  var getReverseOffers = _.partial(getter, orderbook.counter, orderbook.base);
-  return _Promise.all([getOffers(), getReverseOffers()]).then(function (data) {
-    return formatBidsAndAsks(orderbook, _.flatten(data));
-  });
+  const getter = _.partial(getBookOffers, this.connection, address,
+    options.ledgerVersion, options.limit);
+  const getOffers = _.partial(getter, orderbook.base, orderbook.counter);
+  const getReverseOffers = _.partial(getter, orderbook.counter, orderbook.base);
+  return Promise.all([getOffers(), getReverseOffers()]).then(data =>
+    formatBidsAndAsks(orderbook, _.flatten(data)));
 }
 
 module.exports = getOrderbook;

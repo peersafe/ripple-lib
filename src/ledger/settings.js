@@ -1,18 +1,36 @@
-
+/* @flow */
 'use strict';
+const _ = require('lodash');
+const utils = require('./utils');
+const parseFields = require('./parse/fields');
+const {validate} = utils.common;
+const AccountFlags = utils.common.constants.AccountFlags;
 
-var _Promise = require('babel-runtime/core-js/promise')['default'];
+type SettingsOptions = {
+  ledgerVersion?: number
+}
 
-var _ = require('lodash');
-var utils = require('./utils');
-var parseFields = require('./parse/fields');
-var validate = utils.common.validate;
+type GetSettings = {
+  passwordSpent?: boolean,
+  requireDestinationTag?: boolean,
+  requireAuthorization?: boolean,
+  disallowIncomingXRP?: boolean,
+  disableMasterKey?: boolean,
+  enableTransactionIDTracking?: boolean,
+  noFreeze?: boolean,
+  globalFreeze?: boolean,
+  defaultRipple?: boolean,
+  emailHash?: ?string,
+  messageKey?: string,
+  domain?: string,
+  transferRate?: ?number,
+  regularKey?: string
+}
 
-var AccountFlags = utils.common.constants.AccountFlags;
 
 function parseFlags(value) {
-  var settings = {};
-  for (var flagName in AccountFlags) {
+  const settings = {};
+  for (const flagName in AccountFlags) {
     if (value & AccountFlags[flagName]) {
       settings[flagName] = true;
     }
@@ -21,18 +39,17 @@ function parseFlags(value) {
 }
 
 function formatSettings(response) {
-  var data = response.account_data;
-  var parsedFlags = parseFlags(data.Flags);
-  var parsedFields = parseFields(data);
+  const data = response.account_data;
+  const parsedFlags = parseFlags(data.Flags);
+  const parsedFields = parseFields(data);
   return _.assign({}, parsedFlags, parsedFields);
 }
 
-function getSettings(address) {
-  var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+function getSettings(address: string, options: SettingsOptions = {}
+): Promise<GetSettings> {
+  validate.getSettings({address, options});
 
-  validate.getSettings({ address: address, options: options });
-
-  var request = {
+  const request = {
     command: 'account_info',
     account: address,
     ledger_index: options.ledgerVersion || 'validated'

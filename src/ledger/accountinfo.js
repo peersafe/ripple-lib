@@ -1,16 +1,45 @@
-
+/* @flow */
 
 'use strict';
+const utils = require('./utils');
+const {validate, removeUndefined} = utils.common;
 
-var _Promise = require('babel-runtime/core-js/promise')['default'];
+type AccountData = {
+  Sequence: number,
+  Account: string,
+  Balance: string,
+  Flags: number,
+  LedgerEntryType: string,
+  OwnerCount: number,
+  PreviousTxnID: string,
+  AccountTxnID?: string,
+  PreviousTxnLgrSeq: number,
+  index: string
+}
 
-var utils = require('./utils');
-var _utils$common = utils.common;
-var validate = _utils$common.validate;
-var removeUndefined = _utils$common.removeUndefined;
+type AccountDataResponse = {
+  account_data: AccountData,
+  ledger_current_index?: number,
+  ledger_hash?: string,
+  ledger_index: number,
+  validated: boolean
+}
 
-function formatAccountInfo(response) {
-  var data = response.account_data;
+type AccountInfoOptions = {
+  ledgerVersion?: number
+}
+
+type AccountInfoResponse = {
+  sequence: number,
+  xrpBalance: string,
+  ownerCount: number,
+  previousInitiatedTransactionID: string,
+  previousAffectingTransactionID: string,
+  previousAffectingTransactionLedgerVersion: number
+}
+
+function formatAccountInfo(response: AccountDataResponse) {
+  const data = response.account_data;
   return removeUndefined({
     sequence: data.Sequence,
     xrpBalance: utils.common.dropsToXrp(data.Balance),
@@ -21,12 +50,11 @@ function formatAccountInfo(response) {
   });
 }
 
-function getAccountInfo(address) {
-  var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+function getAccountInfo(address: string, options: AccountInfoOptions = {}
+): Promise<AccountInfoResponse> {
+  validate.getAccountInfo({address, options});
 
-  validate.getAccountInfo({ address: address, options: options });
-
-  var request = {
+  const request = {
     command: 'account_info',
     account: address,
     ledger_index: options.ledgerVersion || 'validated'

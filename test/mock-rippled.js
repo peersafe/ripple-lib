@@ -1,4 +1,4 @@
-'use strict';
+'use strict'; // eslint-disable-line 
 const _ = require('lodash');
 const assert = require('assert');
 const WebSocketServer = require('ws').Server;
@@ -9,6 +9,7 @@ const hashes = require('./fixtures/hashes');
 const transactionsResponse = require('./fixtures/rippled/account-tx');
 const accountLinesResponse = require('./fixtures/rippled/account-lines');
 const fullLedger = require('./fixtures/rippled/ledger-full-38129.json');
+const {getFreePort} = require('./utils/net-utils');
 
 function isUSD(json) {
   return json === 'USD' || json === '0000000000000000000000005553440000000000';
@@ -46,7 +47,7 @@ function createLedgerResponse(request, response) {
   return JSON.stringify(newResponse);
 }
 
-module.exports = function(port) {
+module.exports = function createMockRippled(port) {
   const mock = new WebSocketServer({port: port});
   _.assign(mock, EventEmitter2.prototype);
 
@@ -71,12 +72,20 @@ module.exports = function(port) {
   };
 
   mock.on('connection', function(conn) {
+    if (mock.config.breakNextConnection) {
+      mock.config.breakNextConnection = false;
+      conn.terminate();
+      return;
+    }
     this.socket = conn;
+    conn.config = {};
     conn.on('message', function(requestJSON) {
       const request = JSON.parse(requestJSON);
       mock.emit('request_' + request.command, request, conn);
     });
   });
+
+  mock.config = {};
 
   mock.onAny(function() {
     if (this.event.indexOf('request_') !== 0) {
@@ -95,10 +104,55 @@ module.exports = function(port) {
     mock.expectedRequests[this.event] -= 1;
   });
 
+  mock.on('request_config', function(request, conn) {
+    assert.strictEqual(request.command, 'config');
+    conn.config = _.assign(conn.config, request.data);
+  });
+
+  mock.on('request_test_command', function(request, conn) {
+    assert.strictEqual(request.command, 'test_command');
+    if (request.data.disconnectIn) {
+      setTimeout(conn.terminate.bind(conn), request.data.disconnectIn);
+    } else if (request.data.openOnOtherPort) {
+      getFreePort().then(newPort => {
+        createMockRippled(newPort);
+        conn.send(createResponse(request, {status: 'success', type: 'response',
+          result: {port: newPort}}
+        ));
+      });
+    } else if (request.data.closeServerAndReopen) {
+      setTimeout(() => {
+        conn.terminate();
+        close.call(mock, () => {
+          setTimeout(() => {
+            createMockRippled(port);
+          }, request.data.closeServerAndReopen);
+        });
+      }, 10);
+    }
+  });
+
+  mock.on('request_global_config', function(request, conn) {
+    assert.strictEqual(request.command, 'global_config');
+    mock.config = _.assign(conn.config, request.data);
+  });
+
+  mock.on('request_echo', function(request, conn) {
+    assert.strictEqual(request.command, 'echo');
+    conn.send(JSON.stringify(request.data));
+  });
+
   mock.on('request_server_info', function(request, conn) {
     assert.strictEqual(request.command, 'server_info');
-    if (mock.returnErrorOnServerInfo) {
+    if (conn.config.returnErrorOnServerInfo) {
       conn.send(createResponse(request, fixtures.server_info.error));
+    } else if (conn.config.disconnectOnServerInfo) {
+      conn.close();
+    } else if (conn.config.serverInfoWithoutValidated) {
+      conn.send(createResponse(request, fixtures.server_info.noValidated));
+    } else if (mock.config.returnSyncingServerInfo) {
+      mock.config.returnSyncingServerInfo--;
+      conn.send(createResponse(request, fixtures.server_info.syncing));
     } else {
       conn.send(createResponse(request, fixtures.server_info.normal));
     }
@@ -106,7 +160,10 @@ module.exports = function(port) {
 
   mock.on('request_subscribe', function(request, conn) {
     assert.strictEqual(request.command, 'subscribe');
-    if (request.accounts) {
+    if (mock.config.returnEmptySubscribeRequest) {
+      mock.config.returnEmptySubscribeRequest--;
+      conn.send(createResponse(request, fixtures.empty));
+    } else if (request.accounts) {
       assert(_.indexOf(_.values(addresses), request.accounts[0]) !== -1);
     }
     conn.send(createResponse(request, fixtures.subscribe));
@@ -310,6 +367,8 @@ module.exports = function(port) {
     }
     if (request.source_account === addresses.NOTFOUND) {
       response = createResponse(request, fixtures.path_find.srcActNotFound);
+    } else if (request.source_account === addresses.SOURCE_LOW_FUNDS) {
+      response = createResponse(request, fixtures.path_find.sourceAmountLow);
     } else if (request.source_account === addresses.OTHER_ACCOUNT) {
       response = createResponse(request, fixtures.path_find.sendUSD);
     } else if (request.source_account === addresses.THIRD_ACCOUNT) {

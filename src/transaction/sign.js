@@ -1,62 +1,48 @@
-
+/* @flow */
 'use strict';
-var utils = require('./utils');
-var keypairs = require('ripple-keypairs');
-var binary = require('ripple-binary-codec');
+const utils = require('./utils');
+const keypairs = require('ripple-keypairs');
+const binary = require('ripple-binary-codec');
+const {computeBinaryTransactionHash} = require('ripple-hashes');
+const validate = utils.common.validate;
 
-var _require = require('ripple-hashes');
-
-var computeBinaryTransactionHash = _require.computeBinaryTransactionHash;
-
-var validate = utils.common.validate;
-
-function computeSignature(tx, privateKey, signAs) {
-  var signingData = signAs ? binary.encodeForMultisigning(tx, signAs) : binary.encodeForSigning(tx);
-  //console.log('**********signingData**************');
-  //console.log(signingData);
-  debugger;
+function computeSignature(tx: Object, privateKey: string, signAs: ?string) {
+  const signingData = signAs ?
+    binary.encodeForMultisigning(tx, signAs) : binary.encodeForSigning(tx);
   return keypairs.sign(signingData, privateKey);
 }
 
-function sign(txJSON, secret) {
-	debugger;
-  var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
-
-  validate.sign({ txJSON: txJSON, secret: secret });
+function sign(txJSON: string, secret: string, options: Object = {}
+): {signedTransaction: string; id: string} {
+  validate.sign({txJSON, secret});
   // we can't validate that the secret matches the account because
   // the secret could correspond to the regular key
-debugger;
-  var tx = JSON.parse(txJSON);
-  //console.log("****************in sign********************");
-  //console.log(tx);
+
+  const tx = JSON.parse(txJSON);
   if (tx.TxnSignature || tx.Signers) {
-    throw new utils.common.errors.ValidationError('txJSON must not contain "TxnSignature" or "Signers" properties');
+    throw new utils.common.errors.ValidationError(
+      'txJSON must not contain "TxnSignature" or "Signers" properties');
   }
 
-  var keypair = keypairs.deriveKeypair(secret);
+  const keypair = keypairs.deriveKeypair(secret);
   tx.SigningPubKey = options.signAs ? '' : keypair.publicKey;
 
   if (options.signAs) {
-    var signer = {
+    const signer = {
       Account: options.signAs,
       SigningPubKey: keypair.publicKey,
       TxnSignature: computeSignature(tx, keypair.privateKey, options.signAs)
     };
-    tx.Signers = [{ Signer: signer }];
+    tx.Signers = [{Signer: signer}];
   } else {
     tx.TxnSignature = computeSignature(tx, keypair.privateKey);
   }
-  //console.log("****************in sign********************");
-  //console.log(tx);
-  var serialized = binary.encode(tx);
-  var tmp = binary.decode(serialized);
-  console.log("**********decode************");
-  console.log(tmp);
+
+  const serialized = binary.encode(tx);
   return {
     signedTransaction: serialized,
     id: computeBinaryTransactionHash(serialized)
   };
-  
 }
 
 module.exports = sign;

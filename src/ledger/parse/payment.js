@@ -1,14 +1,10 @@
-
+/* @flow */
 'use strict';
-var _ = require('lodash');
-var assert = require('assert');
-var utils = require('./utils');
-var parseAmount = require('./amount');
-var txFlags = utils.txFlags;
-
-function isPartialPayment(tx) {
-  return (tx.Flags & txFlags.Payment.PartialPayment) !== 0;
-}
+const _ = require('lodash');
+const assert = require('assert');
+const utils = require('./utils');
+const parseAmount = require('./amount');
+const txFlags = utils.txFlags;
 
 function isNoDirectRipple(tx) {
   return (tx.Flags & txFlags.Payment.NoRippleDirect) !== 0;
@@ -19,19 +15,21 @@ function isQualityLimited(tx) {
 }
 
 function removeGenericCounterparty(amount, address) {
-  return amount.counterparty === address ? _.omit(amount, 'counterparty') : amount;
+  return amount.counterparty === address ?
+    _.omit(amount, 'counterparty') : amount;
 }
 
-function parsePayment(tx) {
+function parsePayment(tx: Object): Object {
   assert(tx.TransactionType === 'Payment');
 
-  var source = {
+  const source = {
     address: tx.Account,
-    maxAmount: removeGenericCounterparty(parseAmount(tx.SendMax || tx.Amount), tx.Account),
+    maxAmount: removeGenericCounterparty(
+      parseAmount(tx.SendMax || tx.Amount), tx.Account),
     tag: tx.SourceTag
   };
 
-  var destination = {
+  const destination = {
     address: tx.Destination,
     amount: removeGenericCounterparty(parseAmount(tx.Amount), tx.Destination),
     tag: tx.DestinationTag
@@ -43,7 +41,7 @@ function parsePayment(tx) {
     memos: utils.parseMemos(tx),
     invoiceID: tx.InvoiceID,
     paths: tx.Paths ? JSON.stringify(tx.Paths) : undefined,
-    allowPartialPayment: isPartialPayment(tx) || undefined,
+    allowPartialPayment: utils.isPartialPayment(tx) || undefined,
     noDirectRipple: isNoDirectRipple(tx) || undefined,
     limitQuality: isQualityLimited(tx) || undefined
   });

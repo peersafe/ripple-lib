@@ -1,9 +1,9 @@
-
+/* @flow */
 'use strict';
-var assert = require('assert');
-var utils = require('./utils');
+const assert = require('assert');
+const utils = require('./utils');
 
-function parseSuspendedPaymentCancellation(tx) {
+function parseSuspendedPaymentCancellation(tx: Object): Object {
   assert(tx.TransactionType === 'SuspendedPaymentCancel');
 
   return utils.removeUndefined({

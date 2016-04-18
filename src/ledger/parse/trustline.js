@@ -1,8 +1,8 @@
-
+/* @flow */
 'use strict';
-var assert = require('assert');
-var utils = require('./utils');
-var flags = utils.txFlags.TrustSet;
+const assert = require('assert');
+const utils = require('./utils');
+const flags = utils.txFlags.TrustSet;
 
 function parseFlag(flagsValue, trueValue, falseValue) {
   if (flagsValue & trueValue) {
@@ -14,7 +14,7 @@ function parseFlag(flagsValue, trueValue, falseValue) {
   return undefined;
 }
 
-function parseTrustline(tx) {
+function parseTrustline(tx: Object): Object {
   assert(tx.TransactionType === 'TrustSet');
 
   return utils.removeUndefined({
@@ -23,7 +23,8 @@ function parseTrustline(tx) {
     counterparty: tx.LimitAmount.issuer,
     qualityIn: utils.parseQuality(tx.QualityIn),
     qualityOut: utils.parseQuality(tx.QualityOut),
-    ripplingDisabled: parseFlag(tx.Flags, flags.SetNoRipple, flags.ClearNoRipple),
+    ripplingDisabled: parseFlag(
+      tx.Flags, flags.SetNoRipple, flags.ClearNoRipple),
     frozen: parseFlag(tx.Flags, flags.SetFreeze, flags.ClearFreeze),
     authorized: parseFlag(tx.Flags, flags.SetAuth, 0)
   });

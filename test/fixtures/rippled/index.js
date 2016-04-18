@@ -1,4 +1,4 @@
-'use strict';
+'use strict'; // eslint-disable-line 
 
 module.exports = {
   submit: {
@@ -12,6 +12,7 @@ module.exports = {
     withSettingsTx: require('./ledger-with-settings-tx'),
     withStateAsHashes: require('./ledger-with-state-as-hashes')
   },
+  empty: require('./empty'),
   subscribe: require('./subscribe'),
   unsubscribe: require('./unsubscribe'),
   account_info: {
@@ -31,6 +32,8 @@ module.exports = {
   },
   server_info: {
     normal: require('./server-info'),
+    noValidated: require('./server-info-no-validated'),
+    syncing: require('./server-info-syncing'),
     error: require('./server-info-error')
   },
   path_find: {
@@ -38,7 +41,8 @@ module.exports = {
     sendUSD: require('./path-find-send-usd'),
     sendAll: require('./path-find-send-all'),
     XrpToXrp: require('./path-find-xrp-to-xrp'),
-    srcActNotFound: require('./path-find-srcActNotFound')
+    srcActNotFound: require('./path-find-srcActNotFound'),
+    sourceAmountLow: require('./path-find-srcAmtLow')
   },
   tx: {
     Payment: require('./tx/payment.json'),

@@ -1,5 +1,5 @@
-
-'use strict';
+/* @flow */
+'use strict'; // eslint-disable-line 
 
 /* eslint-disable max-len */
 // Enable core-js polyfills. This allows use of ES6/7 extensions listed here:
@@ -8,105 +8,92 @@
 
 // In node.js env, polyfill might be already loaded (from any npm package),
 // that's why we do this check.
-
-var _get = require('babel-runtime/helpers/get')['default'];
-
-var _inherits = require('babel-runtime/helpers/inherits')['default'];
-
-var _createClass = require('babel-runtime/helpers/create-class')['default'];
-
-var _classCallCheck = require('babel-runtime/helpers/class-call-check')['default'];
-
-var _Promise = require('babel-runtime/core-js/promise')['default'];
-
 if (!global._babelPolyfill) {
   require('babel-polyfill');
 }
 
-var _ = require('lodash');
-var EventEmitter = require('events').EventEmitter;
-var common = require('./common');
-var server = require('./server/server');
-var connect = server.connect;
-var disconnect = server.disconnect;
-var getServerInfo = server.getServerInfo;
-var getFee = server.getFee;
-var isConnected = server.isConnected;
-var getLedgerVersion = server.getLedgerVersion;
-var getTransaction = require('./ledger/transaction');
-var getTransactions = require('./ledger/transactions');
-var getTrustlines = require('./ledger/trustlines');
-var getBalances = require('./ledger/balances');
-var getBalanceSheet = require('./ledger/balance-sheet');
-var getPaths = require('./ledger/pathfind');
-var getOrders = require('./ledger/orders');
-var getOrderbook = require('./ledger/orderbook');
-var getSettings = require('./ledger/settings');
-var getAccountInfo = require('./ledger/accountinfo');
-var preparePayment = require('./transaction/payment');
-var prepareTrustline = require('./transaction/trustline');
-var prepareOrder = require('./transaction/order');
-var prepareOrderCancellation = require('./transaction/ordercancellation');
-var prepareSuspendedPaymentCreation = require('./transaction/suspended-payment-creation');
-var prepareSuspendedPaymentExecution = require('./transaction/suspended-payment-execution');
-var prepareSuspendedPaymentCancellation = require('./transaction/suspended-payment-cancellation');
-var prepareSettings = require('./transaction/settings');
-var sign = require('./transaction/sign');
-var combine = require('./transaction/combine');
-var submit = require('./transaction/submit');
-var errors = require('./common').errors;
-var generateAddress = require('./offline/generate-address').generateAddressAPI;
-var computeLedgerHash = require('./offline/ledgerhash');
-var getLedger = require('./ledger/ledger');
+const _ = require('lodash');
+const EventEmitter = require('events').EventEmitter;
+const common = require('./common');
+const server = require('./server/server');
+const connect = server.connect;
+const disconnect = server.disconnect;
+const getServerInfo = server.getServerInfo;
+const getFee = server.getFee;
+const isConnected = server.isConnected;
+const getLedgerVersion = server.getLedgerVersion;
+const getTransaction = require('./ledger/transaction');
+const getTransactions = require('./ledger/transactions');
+const getTrustlines = require('./ledger/trustlines');
+const getBalances = require('./ledger/balances');
+const getBalanceSheet = require('./ledger/balance-sheet');
+const getPaths = require('./ledger/pathfind');
+const getOrders = require('./ledger/orders');
+const getOrderbook = require('./ledger/orderbook');
+const getSettings = require('./ledger/settings');
+const getAccountInfo = require('./ledger/accountinfo');
+const preparePayment = require('./transaction/payment');
+const prepareTrustline = require('./transaction/trustline');
+const prepareOrder = require('./transaction/order');
+const prepareOrderCancellation = require('./transaction/ordercancellation');
+const prepareSuspendedPaymentCreation =
+  require('./transaction/suspended-payment-creation');
+const prepareSuspendedPaymentExecution =
+  require('./transaction/suspended-payment-execution');
+const prepareSuspendedPaymentCancellation =
+  require('./transaction/suspended-payment-cancellation');
+const prepareSettings = require('./transaction/settings');
+const sign = require('./transaction/sign');
+const combine = require('./transaction/combine');
+const submit = require('./transaction/submit');
+const errors = require('./common').errors;
+const generateAddress =
+  require('./offline/generate-address').generateAddressAPI;
+const computeLedgerHash = require('./offline/ledgerhash');
+const getLedger = require('./ledger/ledger');
+
+type APIOptions = {
+  server?: string,
+  feeCushion?: number,
+  trace?: boolean,
+  proxy?: string,
+  timeout?: number
+}
 
 // prevent access to non-validated ledger versions
-
-var RestrictedConnection = (function (_common$Connection) {
-  _inherits(RestrictedConnection, _common$Connection);
-
-  function RestrictedConnection() {
-    _classCallCheck(this, RestrictedConnection);
-
-    _get(Object.getPrototypeOf(RestrictedConnection.prototype), 'constructor', this).apply(this, arguments);
-  }
-
-  _createClass(RestrictedConnection, [{
-    key: 'request',
-    value: function request(_request, timeout) {
-      var ledger_index = _request.ledger_index;
-      if (ledger_index !== undefined && ledger_index !== 'validated') {
-        if (!_.isNumber(ledger_index) || ledger_index > this._ledgerVersion) {
-          return _Promise.reject(new errors.LedgerVersionError('ledgerVersion ' + ledger_index + ' is greater than server\'s ' + ('most recent validated ledger: ' + this._ledgerVersion)));
-        }
+class RestrictedConnection extends common.Connection {
+  request(request, timeout) {
+    const ledger_index = request.ledger_index;
+    if (ledger_index !== undefined && ledger_index !== 'validated') {
+      if (!_.isNumber(ledger_index) || ledger_index > this._ledgerVersion) {
+        return Promise.reject(new errors.LedgerVersionError(
+          `ledgerVersion ${ledger_index} is greater than server\'s ` +
+          `most recent validated ledger: ${this._ledgerVersion}`));
       }
-      return _get(Object.getPrototypeOf(RestrictedConnection.prototype), 'request', this).call(this, _request, timeout);
     }
-  }]);
+    return super.request(request, timeout);
+  }
+}
 
-  return RestrictedConnection;
-})(common.Connection);
-
-var RippleAPI = (function (_EventEmitter) {
-  _inherits(RippleAPI, _EventEmitter);
-
-  function RippleAPI() {
-    var _this = this;
-
-    var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-    _classCallCheck(this, RippleAPI);
-
+class RippleAPI extends EventEmitter {
+  constructor(options: APIOptions = {}) {
     common.validate.apiOptions(options);
-    _get(Object.getPrototypeOf(RippleAPI.prototype), 'constructor', this).call(this);
+    super();
     this._feeCushion = options.feeCushion || 1.2;
-    var serverURL = options.server;
+    const serverURL = options.server;
     if (serverURL !== undefined) {
       this.connection = new RestrictedConnection(serverURL, options);
-      this.connection.on('ledgerClosed', function (message) {
-        _this.emit('ledger', server.formatLedgerClose(message));
+      this.connection.on('ledgerClosed', message => {
+        this.emit('ledger', server.formatLedgerClose(message));
       });
-      this.connection.on('error', function (errorCode, errorMessage, data) {
-        _this.emit('error', errorCode, errorMessage, data);
+      this.connection.on('error', (errorCode, errorMessage, data) => {
+        this.emit('error', errorCode, errorMessage, data);
+      });
+      this.connection.on('connected', () => {
+        this.emit('connected');
+      });
+      this.connection.on('disconnected', code => {
+        this.emit('disconnected', code);
       });
     } else {
       // use null object pattern to provide better error message if user
@@ -114,45 +101,43 @@ var RippleAPI = (function (_EventEmitter) {
       this.connection = new RestrictedConnection(null, options);
     }
   }
-
-  return RippleAPI;
-})(EventEmitter);
+}
 
 _.assign(RippleAPI.prototype, {
-  connect: connect,
-  disconnect: disconnect,
-  isConnected: isConnected,
-  getServerInfo: getServerInfo,
-  getFee: getFee,
-  getLedgerVersion: getLedgerVersion,
+  connect,
+  disconnect,
+  isConnected,
+  getServerInfo,
+  getFee,
+  getLedgerVersion,
 
-  getTransaction: getTransaction,
-  getTransactions: getTransactions,
-  getTrustlines: getTrustlines,
-  getBalances: getBalances,
-  getBalanceSheet: getBalanceSheet,
-  getPaths: getPaths,
-  getOrders: getOrders,
-  getOrderbook: getOrderbook,
-  getSettings: getSettings,
-  getAccountInfo: getAccountInfo,
-  getLedger: getLedger,
+  getTransaction,
+  getTransactions,
+  getTrustlines,
+  getBalances,
+  getBalanceSheet,
+  getPaths,
+  getOrders,
+  getOrderbook,
+  getSettings,
+  getAccountInfo,
+  getLedger,
 
-  preparePayment: preparePayment,
-  prepareTrustline: prepareTrustline,
-  prepareOrder: prepareOrder,
-  prepareOrderCancellation: prepareOrderCancellation,
-  prepareSuspendedPaymentCreation: prepareSuspendedPaymentCreation,
-  prepareSuspendedPaymentExecution: prepareSuspendedPaymentExecution,
-  prepareSuspendedPaymentCancellation: prepareSuspendedPaymentCancellation,
-  prepareSettings: prepareSettings,
-  sign: sign,
-  combine: combine,
-  submit: submit,
+  preparePayment,
+  prepareTrustline,
+  prepareOrder,
+  prepareOrderCancellation,
+  prepareSuspendedPaymentCreation,
+  prepareSuspendedPaymentExecution,
+  prepareSuspendedPaymentCancellation,
+  prepareSettings,
+  sign,
+  combine,
+  submit,
 
-  generateAddress: generateAddress,
-  computeLedgerHash: computeLedgerHash,
-  errors: errors
+  generateAddress,
+  computeLedgerHash,
+  errors
 });
 
 // these are exposed only for use by unit tests; they are not part of the API
@@ -164,5 +149,5 @@ RippleAPI._PRIVATE = {
 };
 
 module.exports = {
-  RippleAPI: RippleAPI
+  RippleAPI
 };

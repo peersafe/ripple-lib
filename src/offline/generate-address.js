@@ -1,18 +1,17 @@
 'use strict';
-var keypairs = require('ripple-keypairs');
-var common = require('../common');
-var errors = common.errors;
-var validate = common.validate;
+const keypairs = require('ripple-keypairs');
+const common = require('../common');
+const {errors, validate} = common;
 
-function generateAddress(options) {
-  var secret = keypairs.generateSeed(options);
-  var keypair = keypairs.deriveKeypair(secret);
-  var address = keypairs.deriveAddress(keypair.publicKey);
-  return { secret: secret, address: address };
+function generateAddress(options?: Object): Object {
+  const secret = keypairs.generateSeed(options);
+  const keypair = keypairs.deriveKeypair(secret);
+  const address = keypairs.deriveAddress(keypair.publicKey);
+  return {secret, address};
 }
 
-function generateAddressAPI(options) {
-  validate.generateAddress({ options: options });
+function generateAddressAPI(options?: Object): Object {
+  validate.generateAddress({options});
   try {
     return generateAddress(options);
   } catch (error) {
@@ -21,5 +20,5 @@ function generateAddressAPI(options) {
 }
 
 module.exports = {
-  generateAddressAPI: generateAddressAPI
+  generateAddressAPI
 };

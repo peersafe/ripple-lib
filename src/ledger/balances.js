@@ -1,69 +1,64 @@
-
+/* @flow */
 'use strict';
+const utils = require('./utils');
+const {validate} = utils.common;
+import type {Connection} from '../common/connection.js';
+import type {TrustlinesOptions, Trustline} from './trustlines-types.js';
 
-var _Promise = require('babel-runtime/core-js/promise')['default'];
 
-var utils = require('./utils');
-var commonutils = require('../common/utils.js');
-var validate = utils.common.validate;
+type Balance = {
+  value: string,
+  currency: string,
+  counterparty?: string
+}
 
-function getTrustlineBalanceAmount(trustline) {
+type GetBalances = Array<Balance>
+
+function getTrustlineBalanceAmount(trustline: Trustline) {
   return {
     currency: trustline.specification.currency,
     counterparty: trustline.specification.counterparty,
-    value: trustline.state.balance,
-    currencyname:trustline.specification.currencyname,
-    currencysymbol:trustline.specification.currencysymbol,
+    value: trustline.state.balance
   };
 }
 
 function formatBalances(options, balances) {
-  var result = balances.trustlines.map(getTrustlineBalanceAmount); 
-  if (!(options.counterparty || options.currency && options.currency !== 'XRP')) {
-    var xrpBalance = {
+  const result = balances.trustlines.map(getTrustlineBalanceAmount);
+  if (!(options.counterparty ||
+       (options.currency && options.currency !== 'XRP')
+  )) {
+    const xrpBalance = {
       currency: 'XRP',
-      value: balances.xrp,
-      realneme:balances.clientname,
-      addressbook:balances.address,
+      value: balances.xrp
     };
     result.unshift(xrpBalance);
   }
   if (options.limit && result.length > options.limit) {
-    var toRemove = result.length - options.limit;
+    const toRemove = result.length - options.limit;
     result.splice(-toRemove, toRemove);
   }
-
   return result;
 }
 
-function getLedgerVersionHelper(connection, optionValue) {
+function getLedgerVersionHelper(connection: Connection, optionValue?: number
+): Promise<number> {
   if (optionValue !== undefined && optionValue !== null) {
-    return _Promise.resolve(optionValue);
+    return Promise.resolve(optionValue);
   }
   return connection.getLedgerVersion();
 }
 
+function getBalances(address: string, options: TrustlinesOptions = {}
+): Promise<GetBalances> {
+  validate.getTrustlines({address, options});
 
-
-
-function getBalances(address) {
-  var _this = this;
-
-  var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-  var realname;
-  var addressbook;
-	
-  validate.getTrustlines({ address: address, options: options });
-
-  return _Promise.all([getLedgerVersionHelper(this.connection, options.ledgerVersion).then(function (ledgerVersion) {
-    return utils.getXRPModifyBalance(_this.connection, address, ledgerVersion)
-		.then(function(data){
-		realname = data.account_data.RealName;
-		addressbook = data.account_data.AddressBook;
-	    return commonutils.dropsToXrp(data.account_data.Balance);
-	})}), this.getTrustlines(address, options)]).then(function (results) {
-    return formatBalances(options, { xrp: results[0], trustlines: results[1] ,clientname:realname,address:addressbook});
-  });
+  return Promise.all([
+    getLedgerVersionHelper(this.connection, options.ledgerVersion).then(
+      ledgerVersion =>
+        utils.getXRPBalance(this.connection, address, ledgerVersion)),
+    this.getTrustlines(address, options)
+  ]).then(results =>
+    formatBalances(options, {xrp: results[0], trustlines: results[1]}));
 }
 
 module.exports = getBalances;

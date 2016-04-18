@@ -1,27 +1,32 @@
-
+/* @flow */
 'use strict';
+const _ = require('lodash');
+const utils = require('./utils');
+const {validate} = utils.common;
+const parseAccountTrustline = require('./parse/account-trustline');
+import type {Connection} from '../common/connection.js';
+import type {TrustlinesOptions, Trustline} from './trustlines-types.js';
 
-var _Promise = require('babel-runtime/core-js/promise')['default'];
 
-var _ = require('lodash');
-var utils = require('./utils');
-var validate = utils.common.validate;
+type GetTrustlinesResponse = Array<Trustline>
 
-var parseAccountTrustline = require('./parse/account-trustline');
-
-function currencyFilter(currency, trustline) {
+function currencyFilter(currency: string, trustline: Trustline) {
   return currency === null || trustline.specification.currency === currency;
 }
 
-function formatResponse(options, data) {
+function formatResponse(options: TrustlinesOptions, data) {
   return {
     marker: data.marker,
-    results: data.lines.map(parseAccountTrustline).filter(_.partial(currencyFilter, options.currency || null))
+    results: data.lines.map(parseAccountTrustline)
+      .filter(_.partial(currencyFilter, options.currency || null))
   };
 }
 
-function getAccountLines(connection, address, ledgerVersion, options, marker, limit) {
-  var request = {
+function getAccountLines(connection: Connection, address: string,
+  ledgerVersion: number, options: TrustlinesOptions, marker: string,
+  limit: number
+): Promise<GetTrustlinesResponse> {
+  const request = {
     command: 'account_lines',
     account: address,
     ledger_index: ledgerVersion,
@@ -29,18 +34,17 @@ function getAccountLines(connection, address, ledgerVersion, options, marker, li
     limit: utils.clamp(limit, 10, 400),
     peer: options.counterparty
   };
+
   return connection.request(request).then(_.partial(formatResponse, options));
 }
 
-function getTrustlines(address) {
-  var _this = this;
+function getTrustlines(address: string, options: TrustlinesOptions = {}
+): Promise<GetTrustlinesResponse> {
+  validate.getTrustlines({address, options});
 
-  var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-  validate.getTrustlines({ address: address, options: options });
-
-  return this.getLedgerVersion().then(function (ledgerVersion) {
-    var getter = _.partial(getAccountLines, _this.connection, address, options.ledgerVersion || ledgerVersion, options);
+  return this.getLedgerVersion().then(ledgerVersion => {
+    const getter = _.partial(getAccountLines, this.connection, address,
+      options.ledgerVersion || ledgerVersion, options);
     return utils.getRecursive(getter, options.limit);
   });
 }

@@ -1,51 +1,58 @@
-
+/* @flow */
 'use strict';
 
-var _Object$assign = require('babel-runtime/core-js/object/assign')['default'];
+const _ = require('lodash');
+const utils = require('./utils');
+const {validate} = utils.common;
+import type {Amount} from '../common/types.js';
 
-var _Promise = require('babel-runtime/core-js/promise')['default'];
+type BalanceSheetOptions = {
+  excludeAddresses?: Array<string>,
+  ledgerVersion?: number
+}
 
-var _ = require('lodash');
-var utils = require('./utils');
-var validate = utils.common.validate;
+type GetBalanceSheet = {
+  balances?: Array<Amount>,
+  assets?: Array<Amount>,
+  obligations?: Array<{
+     currency: string,
+     value: string
+   }>
+}
 
-function formatBalanceSheet(balanceSheet) {
-  var result = {};
+function formatBalanceSheet(balanceSheet): GetBalanceSheet {
+  const result = {};
 
   if (!_.isUndefined(balanceSheet.balances)) {
     result.balances = [];
-    _.forEach(balanceSheet.balances, function (balances, counterparty) {
-      _.forEach(balances, function (balance) {
-        result.balances.push(_Object$assign({ counterparty: counterparty }, balance));
+    _.forEach(balanceSheet.balances, (balances, counterparty) => {
+      _.forEach(balances, (balance) => {
+        result.balances.push(Object.assign({counterparty}, balance));
       });
     });
   }
   if (!_.isUndefined(balanceSheet.assets)) {
     result.assets = [];
-    _.forEach(balanceSheet.assets, function (assets, counterparty) {
-      _.forEach(assets, function (balance) {
-        result.assets.push(_Object$assign({ counterparty: counterparty }, balance));
+    _.forEach(balanceSheet.assets, (assets, counterparty) => {
+      _.forEach(assets, (balance) => {
+        result.assets.push(Object.assign({counterparty}, balance));
       });
     });
   }
   if (!_.isUndefined(balanceSheet.obligations)) {
-    result.obligations = _.map(balanceSheet.obligations, function (value, currency) {
-      return { currency: currency, value: value };
-    });
+    result.obligations = _.map(balanceSheet.obligations, (value, currency) =>
+                               ({currency, value}));
   }
 
   return result;
 }
 
-function getBalanceSheet(address) {
-  var _this = this;
+function getBalanceSheet(address: string, options: BalanceSheetOptions = {}
+): Promise<GetBalanceSheet> {
+  validate.getBalanceSheet({address, options});
 
-  var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-  validate.getBalanceSheet({ address: address, options: options });
-
-  return utils.ensureLedgerVersion.call(this, options).then(function (_options) {
-    var request = {
+  return utils.ensureLedgerVersion.call(this, options).then(_options => {
+    const request = {
       command: 'gateway_balances',
       account: address,
       strict: true,
@@ -53,7 +60,7 @@ function getBalanceSheet(address) {
       ledger_index: _options.ledgerVersion
     };
 
-    return _this.connection.request(request).then(formatBalanceSheet);
+    return this.connection.request(request).then(formatBalanceSheet);
   });
 }
 

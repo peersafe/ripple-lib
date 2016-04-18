@@ -1,13 +1,12 @@
-
+/* @flow */
 'use strict';
-var _ = require('lodash');
-var BigNumber = require('bignumber.js');
+const _ = require('lodash');
+const BigNumber = require('bignumber.js');
+const {deriveKeypair} = require('ripple-keypairs');
 
-var _require = require('ripple-keypairs');
+import type {Amount, RippledAmount} from './types.js';
 
-var deriveKeypair = _require.deriveKeypair;
-
-function isValidSecret(secret) {
+function isValidSecret(secret: string): boolean {
   try {
     deriveKeypair(secret);
     return true;
@@ -16,51 +15,44 @@ function isValidSecret(secret) {
   }
 }
 
-function dropsToXrp(drops) {
-  return new BigNumber(drops).dividedBy(1000000.0).toString();
+function dropsToXrp(drops: string): string {
+  return (new BigNumber(drops)).dividedBy(1000000.0).toString();
 }
 
-function xrpToDrops(xrp) {
-  return new BigNumber(xrp).times(1000000.0).floor().toString();
+function xrpToDrops(xrp: string): string {
+  return (new BigNumber(xrp)).times(1000000.0).floor().toString();
 }
 
-function toRippledAmount(amount) {
+function toRippledAmount(amount: Amount): RippledAmount {
   if (amount.currency === 'XRP') {
     return xrpToDrops(amount.value);
   }
   return {
     currency: amount.currency,
-    issuer: amount.counterparty ? amount.counterparty : amount.issuer ? amount.issuer : undefined,
+    issuer: amount.counterparty ? amount.counterparty :
+      (amount.issuer ? amount.issuer : undefined),
     value: amount.value
   };
 }
 
-function convertKeysFromSnakeCaseToCamelCase(obj) {
+function convertKeysFromSnakeCaseToCamelCase(obj: any): any {
   if (typeof obj === 'object') {
-    var _ret = (function () {
-      var newKey = undefined;
-      return {
-        v: _.reduce(obj, function (result, value, key) {
-          newKey = key;
-          // taking this out of function leads to error in PhantomJS
-          var FINDSNAKE = /([a-zA-Z]_[a-zA-Z])/g;
-          if (FINDSNAKE.test(key)) {
-            newKey = key.replace(FINDSNAKE, function (r) {
-              return r[0] + r[2].toUpperCase();
-            });
-          }
-          result[newKey] = convertKeysFromSnakeCaseToCamelCase(value);
-          return result;
-        }, {})
-      };
-    })();
-
-    if (typeof _ret === 'object') return _ret.v;
+    let newKey;
+    return _.reduce(obj, (result, value, key) => {
+      newKey = key;
+      // taking this out of function leads to error in PhantomJS
+      const FINDSNAKE = /([a-zA-Z]_[a-zA-Z])/g;
+      if (FINDSNAKE.test(key)) {
+        newKey = key.replace(FINDSNAKE, r => r[0] + r[2].toUpperCase());
+      }
+      result[newKey] = convertKeysFromSnakeCaseToCamelCase(value);
+      return result;
+    }, {});
   }
   return obj;
 }
 
-function removeUndefined(obj) {
+function removeUndefined(obj: Object): Object {
   return _.omit(obj, _.isUndefined);
 }
 
@@ -69,7 +61,7 @@ function removeUndefined(obj) {
  * @return {Number} ms since unix epoch
  *
  */
-function rippleToUnixTimestamp(rpepoch) {
+function rippleToUnixTimestamp(rpepoch: number): number {
   return (rpepoch + 0x386D4380) * 1000;
 }
 
@@ -77,25 +69,25 @@ function rippleToUnixTimestamp(rpepoch) {
  * @param {Number|Date} timestamp (ms since unix epoch)
  * @return {Number} seconds since ripple epoch ( 1/1/2000 GMT)
  */
-function unixToRippleTimestamp(timestamp) {
+function unixToRippleTimestamp(timestamp: number): number {
   return Math.round(timestamp / 1000) - 0x386D4380;
 }
 
-function rippleTimeToISO8601(rippleTime) {
+function rippleTimeToISO8601(rippleTime: number): string {
   return new Date(rippleToUnixTimestamp(rippleTime)).toISOString();
 }
 
-function iso8601ToRippleTime(iso8601) {
+function iso8601ToRippleTime(iso8601: string): number {
   return unixToRippleTimestamp(Date.parse(iso8601));
 }
 
 module.exports = {
-  dropsToXrp: dropsToXrp,
-  xrpToDrops: xrpToDrops,
-  toRippledAmount: toRippledAmount,
-  convertKeysFromSnakeCaseToCamelCase: convertKeysFromSnakeCaseToCamelCase,
-  removeUndefined: removeUndefined,
-  rippleTimeToISO8601: rippleTimeToISO8601,
-  iso8601ToRippleTime: iso8601ToRippleTime,
-  isValidSecret: isValidSecret
+  dropsToXrp,
+  xrpToDrops,
+  toRippledAmount,
+  convertKeysFromSnakeCaseToCamelCase,
+  removeUndefined,
+  rippleTimeToISO8601,
+  iso8601ToRippleTime,
+  isValidSecret
 };

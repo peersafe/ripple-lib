@@ -1,20 +1,19 @@
-
+/* @flow */
 'use strict';
+const _ = require('lodash');
+const utils = require('./utils');
+const offerFlags = utils.common.txFlags.OfferCreate;
+const {validate, iso8601ToRippleTime} = utils.common;
+import type {Instructions, Prepare} from './types.js';
+import type {Order} from '../ledger/transaction-types.js';
 
-var _Promise = require('babel-runtime/core-js/promise')['default'];
+function createOrderTransaction(account: string, order: Order): Object {
+  const takerPays = utils.common.toRippledAmount(order.direction === 'buy' ?
+    order.quantity : order.totalPrice);
+  const takerGets = utils.common.toRippledAmount(order.direction === 'buy' ?
+    order.totalPrice : order.quantity);
 
-var _ = require('lodash');
-var utils = require('./utils');
-var offerFlags = utils.common.txFlags.OfferCreate;
-var _utils$common = utils.common;
-var validate = _utils$common.validate;
-var iso8601ToRippleTime = _utils$common.iso8601ToRippleTime;
-
-function createOrderTransaction(account, order) {
-  var takerPays = utils.common.toRippledAmount(order.direction === 'buy' ? order.quantity : order.totalPrice);
-  var takerGets = utils.common.toRippledAmount(order.direction === 'buy' ? order.totalPrice : order.quantity);
-
-  var txJSON = {
+  const txJSON: Object = {
     TransactionType: 'OfferCreate',
     Account: account,
     TakerGets: takerGets,
@@ -42,11 +41,11 @@ function createOrderTransaction(account, order) {
   return txJSON;
 }
 
-function prepareOrder(address, order) {
-  var instructions = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
-
-  validate.prepareOrder({ address: address, order: order, instructions: instructions });
-  var txJSON = createOrderTransaction(address, order);
+function prepareOrder(address: string, order: Order,
+    instructions: Instructions = {}
+): Promise<Prepare> {
+  validate.prepareOrder({address, order, instructions});
+  const txJSON = createOrderTransaction(address, order);
   return utils.prepareTransaction(txJSON, this, instructions);
 }
 

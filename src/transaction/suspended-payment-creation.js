@@ -1,17 +1,24 @@
-
+/* @flow */
 'use strict';
+const _ = require('lodash');
+const utils = require('./utils');
+const {validate, iso8601ToRippleTime, toRippledAmount} = utils.common;
+import type {Instructions, Prepare} from './types.js';
+import type {Adjustment, MaxAdjustment, Memo} from '../common/types.js';
 
-var _Promise = require('babel-runtime/core-js/promise')['default'];
+type SuspendedPaymentCreation = {
+  source: MaxAdjustment,
+  destination: Adjustment,
+  memos?: Array<Memo>,
+  digest?: string,
+  allowCancelAfter?: string,
+  allowExecuteAfter?: string
+}
 
-var _ = require('lodash');
-var utils = require('./utils');
-var _utils$common = utils.common;
-var validate = _utils$common.validate;
-var iso8601ToRippleTime = _utils$common.iso8601ToRippleTime;
-var toRippledAmount = _utils$common.toRippledAmount;
-
-function createSuspendedPaymentCreationTransaction(account, payment) {
-  var txJSON = {
+function createSuspendedPaymentCreationTransaction(account: string,
+    payment: SuspendedPaymentCreation
+): Object {
+  const txJSON: Object = {
     TransactionType: 'SuspendedPaymentCreate',
     Account: account,
     Destination: payment.destination.address,
@@ -39,11 +46,14 @@ function createSuspendedPaymentCreationTransaction(account, payment) {
   return txJSON;
 }
 
-function prepareSuspendedPaymentCreation(address, suspendedPaymentCreation) {
-  var instructions = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
-
-  validate.prepareSuspendedPaymentCreation({ address: address, suspendedPaymentCreation: suspendedPaymentCreation, instructions: instructions });
-  var txJSON = createSuspendedPaymentCreationTransaction(address, suspendedPaymentCreation);
+function prepareSuspendedPaymentCreation(address: string,
+  suspendedPaymentCreation: SuspendedPaymentCreation,
+  instructions: Instructions = {}
+): Promise<Prepare> {
+  validate.prepareSuspendedPaymentCreation(
+    {address, suspendedPaymentCreation, instructions});
+  const txJSON = createSuspendedPaymentCreationTransaction(
+    address, suspendedPaymentCreation);
   return utils.prepareTransaction(txJSON, this, instructions);
 }
 

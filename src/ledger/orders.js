@@ -1,22 +1,24 @@
-
+/* @flow */
 'use strict';
+const _ = require('lodash');
+const utils = require('./utils');
+const {validate} = utils.common;
+const parseAccountOrder = require('./parse/account-order');
+import type {Connection} from '../common/connection.js';
+import type {OrdersOptions, Order} from './types.js';
 
-var _Promise = require('babel-runtime/core-js/promise')['default'];
+type GetOrders = Array<Order>
 
-var _ = require('lodash');
-var utils = require('./utils');
-var validate = utils.common.validate;
-
-var parseAccountOrder = require('./parse/account-order');
-
-function requestAccountOffers(connection, address, ledgerVersion, marker, limit) {
+function requestAccountOffers(connection: Connection, address: string,
+  ledgerVersion: number, marker: string, limit: number
+): Promise {
   return connection.request({
     command: 'account_offers',
     account: address,
     marker: marker,
     limit: utils.clamp(limit, 10, 400),
     ledger_index: ledgerVersion
-  }).then(function (data) {
+  }).then(data => {
     return {
       marker: data.marker,
       results: data.offers.map(_.partial(parseAccountOrder, address))
@@ -24,20 +26,15 @@ function requestAccountOffers(connection, address, ledgerVersion, marker, limit)
   });
 }
 
-function getOrders(address) {
-  var _this = this;
+function getOrders(address: string, options: OrdersOptions = {}
+): Promise<GetOrders> {
+  validate.getOrders({address, options});
 
-  var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-  validate.getOrders({ address: address, options: options });
-
-  return utils.ensureLedgerVersion.call(this, options).then(function (_options) {
-    var getter = _.partial(requestAccountOffers, _this.connection, address, _options.ledgerVersion);
-    return utils.getRecursive(getter, _options.limit).then(function (orders) {
-      return _.sortBy(orders, function (order) {
-        return order.properties.sequence;
-      });
-    });
+  return utils.ensureLedgerVersion.call(this, options).then(_options => {
+    const getter = _.partial(requestAccountOffers, this.connection, address,
+                             _options.ledgerVersion);
+    return utils.getRecursive(getter, _options.limit).then(orders =>
+      _.sortBy(orders, (order) => order.properties.sequence));
   });
 }
 

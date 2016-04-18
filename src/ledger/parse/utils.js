@@ -1,27 +1,33 @@
-
+/* @flow */
 'use strict';
-var _ = require('lodash');
-var transactionParser = require('ripple-lib-transactionparser');
-var utils = require('../utils');
-var BigNumber = require('bignumber.js');
+const _ = require('lodash');
+const transactionParser = require('ripple-lib-transactionparser');
+const utils = require('../utils');
+const BigNumber = require('bignumber.js');
+const parseAmount = require('./amount');
 
-function adjustQualityForXRP(quality, takerGetsCurrency, takerPaysCurrency) {
+import type {Amount} from '../common/types.js';
+
+function adjustQualityForXRP(
+  quality: string, takerGetsCurrency: string, takerPaysCurrency: string
+) {
   // quality = takerPays.value/takerGets.value
   // using drops (1e-6 XRP) for XRP values
-  var numeratorShift = takerPaysCurrency === 'XRP' ? -6 : 0;
-  var denominatorShift = takerGetsCurrency === 'XRP' ? -6 : 0;
-  var shift = numeratorShift - denominatorShift;
-  return shift === 0 ? quality : new BigNumber(quality).shift(shift).toString();
+  const numeratorShift = (takerPaysCurrency === 'XRP' ? -6 : 0);
+  const denominatorShift = (takerGetsCurrency === 'XRP' ? -6 : 0);
+  const shift = numeratorShift - denominatorShift;
+  return shift === 0 ? quality :
+    (new BigNumber(quality)).shift(shift).toString();
 }
 
-function parseQuality(quality) {
+function parseQuality(quality: ?number) {
   if (typeof quality === 'number') {
-    return new BigNumber(quality).shift(-9).toNumber();
+    return (new BigNumber(quality)).shift(-9).toNumber();
   }
   return undefined;
 }
 
-function parseTimestamp(rippleTime) {
+function parseTimestamp(rippleTime: number): string | void {
   return rippleTime ? utils.common.rippleTimeToISO8601(rippleTime) : undefined;
 }
 
@@ -32,49 +38,70 @@ function removeEmptyCounterparty(amount) {
 }
 
 function removeEmptyCounterpartyInBalanceChanges(balanceChanges) {
-  _.forEach(balanceChanges, function (changes) {
+  _.forEach(balanceChanges, changes => {
     _.forEach(changes, removeEmptyCounterparty);
   });
 }
 
 function removeEmptyCounterpartyInOrderbookChanges(orderbookChanges) {
-  _.forEach(orderbookChanges, function (changes) {
-    _.forEach(changes, function (change) {
+  _.forEach(orderbookChanges, changes => {
+    _.forEach(changes, change => {
       _.forEach(change, removeEmptyCounterparty);
     });
   });
 }
 
-function parseOutcome(tx) {
-  var metadata = tx.meta || tx.metaData;
+function isPartialPayment(tx) {
+  return (tx.Flags & utils.common.txFlags.Payment.PartialPayment) !== 0;
+}
+
+function parseDeliveredAmount(tx: Object): Amount | void {
+  let deliveredAmount;
+
+  // TODO: Workaround for existing rippled bug where delivered_amount may not be
+  // provided for account_tx
+  if (tx.TransactionType === 'Payment') {
+    if (tx.meta.delivered_amount) {
+      deliveredAmount = parseAmount(tx.meta.delivered_amount);
+    } else if (tx.Amount && !isPartialPayment(tx)) {
+      deliveredAmount = parseAmount(tx.Amount);
+    }
+  }
+
+  return deliveredAmount;
+}
+
+function parseOutcome(tx: Object): ?Object {
+  const metadata = tx.meta || tx.metaData;
   if (!metadata) {
     return undefined;
   }
-  var balanceChanges = transactionParser.parseBalanceChanges(metadata);
-  var orderbookChanges = transactionParser.parseOrderbookChanges(metadata);
+  const balanceChanges = transactionParser.parseBalanceChanges(metadata);
+  const orderbookChanges = transactionParser.parseOrderbookChanges(metadata);
   removeEmptyCounterpartyInBalanceChanges(balanceChanges);
   removeEmptyCounterpartyInOrderbookChanges(orderbookChanges);
 
-  return {
+  return utils.common.removeUndefined({
     result: tx.meta.TransactionResult,
     timestamp: parseTimestamp(tx.date),
     fee: utils.common.dropsToXrp(tx.Fee),
     balanceChanges: balanceChanges,
     orderbookChanges: orderbookChanges,
     ledgerVersion: tx.ledger_index,
-    indexInLedger: tx.meta.TransactionIndex
-  };
+    indexInLedger: tx.meta.TransactionIndex,
+    deliveredAmount: parseDeliveredAmount(tx)
+  });
 }
 
-function hexToString(hex) {
+function hexToString(hex: string): ?string {
   return hex ? new Buffer(hex, 'hex').toString('utf-8') : undefined;
 }
 
-function parseMemos(tx) {
+function parseMemos(tx: Object): ?Array<Object> {
   if (!Array.isArray(tx.Memos) || tx.Memos.length === 0) {
     return undefined;
   }
-  return tx.Memos.map(function (m) {
+  return tx.Memos.map(m => {
     return utils.common.removeUndefined({
       type: m.Memo.parsed_memo_type || hexToString(m.Memo.MemoType),
       format: m.Memo.parsed_memo_format || hexToString(m.Memo.MemoFormat),
@@ -84,12 +111,13 @@ function parseMemos(tx) {
 }
 
 module.exports = {
-  parseQuality: parseQuality,
-  parseOutcome: parseOutcome,
-  parseMemos: parseMemos,
-  hexToString: hexToString,
-  parseTimestamp: parseTimestamp,
-  adjustQualityForXRP: adjustQualityForXRP,
+  parseQuality,
+  parseOutcome,
+  parseMemos,
+  hexToString,
+  parseTimestamp,
+  adjustQualityForXRP,
+  isPartialPayment,
   dropsToXrp: utils.common.dropsToXrp,
   constants: utils.common.constants,
   txFlags: utils.common.txFlags,

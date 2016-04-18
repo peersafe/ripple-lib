@@ -1,18 +1,18 @@
 'use strict';
-var flagIndices = require('./txflags').txFlagIndices.AccountSet;
+const flagIndices = require('./txflags').txFlagIndices.AccountSet;
 
-var accountRootFlags = {
+const accountRootFlags = {
   PasswordSpent: 0x00010000, // password set fee is spent
   RequireDestTag: 0x00020000, // require a DestinationTag for payments
   RequireAuth: 0x00040000, // require a authorization to hold IOUs
   DisallowXRP: 0x00080000, // disallow sending XRP
-  DisableMaster: 0x00100000, // force regular key
+  DisableMaster: 0x00100000,  // force regular key
   NoFreeze: 0x00200000, // permanently disallowed freezing trustlines
   GlobalFreeze: 0x00400000, // trustlines globally frozen
   DefaultRipple: 0x00800000
 };
 
-var AccountFlags = {
+const AccountFlags = {
   passwordSpent: accountRootFlags.PasswordSpent,
   requireDestinationTag: accountRootFlags.RequireDestTag,
   requireAuthorization: accountRootFlags.RequireAuth,
@@ -23,7 +23,7 @@ var AccountFlags = {
   defaultRipple: accountRootFlags.DefaultRipple
 };
 
-var AccountFlagIndices = {
+const AccountFlagIndices = {
   requireDestinationTag: flagIndices.asfRequireDest,
   requireAuthorization: flagIndices.asfRequireAuth,
   disallowIncomingXRP: flagIndices.asfDisallowXRP,
@@ -34,16 +34,16 @@ var AccountFlagIndices = {
   defaultRipple: flagIndices.asfDefaultRipple
 };
 
-var AccountFields = {
-  EmailHash: { name: 'emailHash', encoding: 'hex',
-    length: 32, defaults: '0' },
-  MessageKey: { name: 'messageKey' },
-  Domain: { name: 'domain', encoding: 'hex' },
-  TransferRate: { name: 'transferRate', defaults: 0, shift: 9 }
+const AccountFields = {
+  EmailHash: {name: 'emailHash', encoding: 'hex',
+              length: 32, defaults: '0'},
+  MessageKey: {name: 'messageKey'},
+  Domain: {name: 'domain', encoding: 'hex'},
+  TransferRate: {name: 'transferRate', defaults: 0, shift: 9}
 };
 
 module.exports = {
-  AccountFields: AccountFields,
-  AccountFlagIndices: AccountFlagIndices,
-  AccountFlags: AccountFlags
+  AccountFields,
+  AccountFlagIndices,
+  AccountFlags
 };

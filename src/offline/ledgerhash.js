@@ -1,8 +1,8 @@
-
+/* @flow */
 'use strict';
-var _ = require('lodash');
-var common = require('../common');
-var hashes = require('ripple-hashes');
+const _ = require('lodash');
+const common = require('../common');
+const hashes = require('ripple-hashes');
 
 function convertLedgerHeader(header) {
   return {
@@ -23,7 +23,7 @@ function convertLedgerHeader(header) {
 }
 
 function hashLedgerHeader(ledgerHeader) {
-  var header = convertLedgerHeader(ledgerHeader);
+  const header = convertLedgerHeader(ledgerHeader);
   return hashes.computeLedgerHash(header);
 }
 
@@ -31,15 +31,18 @@ function computeTransactionHash(ledger) {
   if (ledger.rawTransactions === undefined) {
     return ledger.transactionHash;
   }
-  var transactions = JSON.parse(ledger.rawTransactions);
-  var txs = _.map(transactions, function (tx) {
-    var mergeTx = _.assign({}, _.omit(tx, 'tx'), tx.tx || {});
-    var renameMeta = _.assign({}, _.omit(mergeTx, 'meta'), tx.meta ? { metaData: tx.meta } : {});
+  const transactions = JSON.parse(ledger.rawTransactions);
+  const txs = _.map(transactions, tx => {
+    const mergeTx = _.assign({}, _.omit(tx, 'tx'), tx.tx || {});
+    const renameMeta = _.assign({}, _.omit(mergeTx, 'meta'),
+      tx.meta ? {metaData: tx.meta} : {});
     return renameMeta;
   });
-  var transactionHash = hashes.computeTransactionTreeHash(txs);
-  if (ledger.transactionHash !== undefined && ledger.transactionHash !== transactionHash) {
-    throw new common.errors.ValidationError('transactionHash in header' + ' does not match computed hash of transactions');
+  const transactionHash = hashes.computeTransactionTreeHash(txs);
+  if (ledger.transactionHash !== undefined
+      && ledger.transactionHash !== transactionHash) {
+    throw new common.errors.ValidationError('transactionHash in header'
+      + ' does not match computed hash of transactions');
   }
   return transactionHash;
 }
@@ -48,16 +51,17 @@ function computeStateHash(ledger) {
   if (ledger.rawState === undefined) {
     return ledger.stateHash;
   }
-  var state = JSON.parse(ledger.rawState);
-  var stateHash = hashes.computeStateTreeHash(state);
+  const state = JSON.parse(ledger.rawState);
+  const stateHash = hashes.computeStateTreeHash(state);
   if (ledger.stateHash !== undefined && ledger.stateHash !== stateHash) {
-    throw new common.errors.ValidationError('stateHash in header' + ' does not match computed hash of state');
+    throw new common.errors.ValidationError('stateHash in header'
+      + ' does not match computed hash of state');
   }
   return stateHash;
 }
 
-function computeLedgerHash(ledger) {
-  var subhashes = {
+function computeLedgerHash(ledger: Object): string {
+  const subhashes = {
     transactionHash: computeTransactionHash(ledger),
     stateHash: computeStateHash(ledger)
   };

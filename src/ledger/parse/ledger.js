@@ -1,17 +1,14 @@
-
+/* @flow */
 'use strict';
-var _ = require('lodash');
-
-var _require = require('./utils');
-
-var removeUndefined = _require.removeUndefined;
-var rippleTimeToISO8601 = _require.rippleTimeToISO8601;
-
-var parseTransaction = require('./transaction');
+const _ = require('lodash');
+const {removeUndefined, rippleTimeToISO8601} = require('./utils');
+const parseTransaction = require('./transaction');
+import type {GetLedger} from '../types.js';
 
 function parseTransactionWrapper(ledgerVersion, tx) {
-  var transaction = _.assign({}, _.omit(tx, 'metaData'), { meta: tx.metaData });
-  var result = parseTransaction(transaction);
+  const transaction = _.assign({}, _.omit(tx, 'metaData'),
+    {meta: tx.metaData});
+  const result = parseTransaction(transaction);
   if (!result.outcome.ledgerVersion) {
     result.outcome.ledgerVersion = ledgerVersion;
   }
@@ -23,10 +20,11 @@ function parseTransactions(transactions, ledgerVersion) {
     return {};
   }
   if (_.isString(transactions[0])) {
-    return { transactionHashes: transactions };
+    return {transactionHashes: transactions};
   }
   return {
-    transactions: _.map(transactions, _.partial(parseTransactionWrapper, ledgerVersion)),
+    transactions: _.map(transactions,
+      _.partial(parseTransactionWrapper, ledgerVersion)),
     rawTransactions: JSON.stringify(transactions)
   };
 }
@@ -36,13 +34,13 @@ function parseState(state) {
     return {};
   }
   if (_.isString(state[0])) {
-    return { stateHashes: state };
+    return {stateHashes: state};
   }
-  return { rawState: JSON.stringify(state) };
+  return {rawState: JSON.stringify(state)};
 }
 
-function parseLedger(ledger) {
-  var ledgerVersion = parseInt(ledger.ledger_index || ledger.seqNum, 10);
+function parseLedger(ledger: Object): GetLedger {
+  const ledgerVersion = parseInt(ledger.ledger_index || ledger.seqNum, 10);
   return removeUndefined(_.assign({
     stateHash: ledger.account_hash,
     closeTime: rippleTimeToISO8601(ledger.close_time),
@@ -54,7 +52,10 @@ function parseLedger(ledger) {
     parentCloseTime: rippleTimeToISO8601(ledger.parent_close_time),
     totalDrops: ledger.total_coins || ledger.totalCoins,
     transactionHash: ledger.transaction_hash
-  }, parseTransactions(ledger.transactions, ledgerVersion), parseState(ledger.accountState)));
+  },
+  parseTransactions(ledger.transactions, ledgerVersion),
+  parseState(ledger.accountState)
+  ));
 }
 
 module.exports = parseLedger;

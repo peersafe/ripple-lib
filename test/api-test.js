@@ -1,5 +1,5 @@
 /* eslint-disable max-nested-callbacks */
-'use strict';
+'use strict'; // eslint-disable-line 
 const _ = require('lodash');
 const assert = require('assert-diff');
 const setupAPI = require('./setup-api');
@@ -14,7 +14,11 @@ const address = addresses.ACCOUNT;
 const utils = RippleAPI._PRIVATE.ledgerUtils;
 const ledgerClosed = require('./fixtures/rippled/ledger-close-newer');
 const schemaValidator = RippleAPI._PRIVATE.schemaValidator;
+const binary = require('ripple-binary-codec');
 assert.options.strict = true;
+
+// how long before each test case times out
+const TIMEOUT = process.browser ? 25000 : 10000;
 
 function unused() {
 }
@@ -37,6 +41,7 @@ function checkResult(expected, schemaName, response) {
 
 
 describe('RippleAPI', function() {
+  this.timeout(TIMEOUT);
   const instructions = {maxLedgerVersionOffset: 100};
   beforeEach(setupAPI.setup);
   afterEach(setupAPI.teardown);
@@ -94,7 +99,7 @@ describe('RippleAPI', function() {
     });
 
     it('preparePayment with all options specified', function() {
-      return this.api.getLedgerVersion().then((ver) => {
+      return this.api.getLedgerVersion().then(ver => {
         const localInstructions = {
           maxLedgerVersion: ver + 100,
           fee: '0.000012'
@@ -322,6 +327,15 @@ describe('RippleAPI', function() {
     schemaValidator.schemaValidate('sign', result);
   });
 
+  it('sign - already signed', function() {
+    const secret = 'shsWGZcmZz6YsWWmcnpfr6fLTdtFV';
+    const result = this.api.sign(requests.sign.normal.txJSON, secret);
+    assert.throws(() => {
+      const tx = JSON.stringify(binary.decode(result.signedTransaction));
+      this.api.sign(tx, secret);
+    }, /txJSON must not contain "TxnSignature" or "Signers" properties/);
+  });
+
   it('sign - SuspendedPaymentExecution', function() {
     const secret = 'snoPBrXtMeMyMHUVTgbuqAfg1SUTb';
     const result = this.api.sign(requests.sign.suspended.txJSON, secret);
@@ -354,6 +368,16 @@ describe('RippleAPI', function() {
   it('combine', function() {
     const combined = this.api.combine(requests.combine.setDomain);
     checkResult(responses.combine.single, 'sign', combined);
+  });
+
+  it('combine - different transactions', function() {
+    const request = [requests.combine.setDomain[0]];
+    const tx = binary.decode(requests.combine.setDomain[0]);
+    tx.Flags = 0;
+    request.push(binary.encode(tx));
+    assert.throws(() => {
+      this.api.combine(request);
+    }, /txJSON is not the same for all signedTransactions/);
   });
 
   describe('RippleAPI', function() {
@@ -944,12 +968,29 @@ describe('RippleAPI', function() {
   });
 
   it('getServerInfo - error', function() {
-    this.mockRippled.returnErrorOnServerInfo = true;
+    this.api.connection._send(JSON.stringify({
+      command: 'config',
+      data: {returnErrorOnServerInfo: true}
+    }));
+
     return this.api.getServerInfo().then(() => {
       assert(false, 'Should throw NetworkError');
     }).catch(error => {
       assert(error instanceof this.api.errors.RippledError);
       assert(_.includes(error.message, 'slowDown'));
+    });
+  });
+
+  it('getServerInfo - no validated ledger', function() {
+    this.api.connection._send(JSON.stringify({
+      command: 'config',
+      data: {serverInfoWithoutValidated: true}
+    }));
+
+    return this.api.getServerInfo().then(info => {
+      assert.strictEqual(info.networkLedger, 'waiting');
+    }).catch(error => {
+      assert(false, 'Should not throw Error, got ' + String(error));
     });
   });
 
@@ -1042,6 +1083,15 @@ describe('RippleAPI', function() {
     });
   });
 
+  it('getPaths - no paths source amount', function() {
+    return this.api.getPaths(requests.getPaths.NoPathsSource).then(() => {
+      assert(false, 'Should throw NotFoundError');
+    }).catch(error => {
+      assert(error instanceof this.api.errors.NotFoundError);
+    });
+  });
+
+
   it('getPaths - no paths with source currencies', function() {
     const pathfind = requests.getPaths.NoPathsWithCurrencies;
     return this.api.getPaths(pathfind).then(() => {
@@ -1065,7 +1115,7 @@ describe('RippleAPI', function() {
   });
 
   it('getLedgerVersion', function(done) {
-    this.api.getLedgerVersion().then((ver) => {
+    this.api.getLedgerVersion().then(ver => {
       assert.strictEqual(ver, 8819951);
       done();
     }, done);
