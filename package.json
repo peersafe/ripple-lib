@@ -1,17 +1,18 @@
-{   
-  "name": "ripple-lib",
-  "version": "0.16.10",
+{
+  "name": "script-ripple-lib",
+  "version": "0.16.11",
   "license": "ISC",
   "description": "A JavaScript API for interacting with Ripple in Node.js and the browser",
   "files": [
-    "dist/npm/*",
+    "src/*",
     "bin/*",
-    "build/*",
+    "build/*".
     "test/*",
     "Gulpfile.js"
   ],
-  "main": "dist/npm/",
+  "main": "src/",
   "directories": {
+    "doc": "docs",
     "test": "test"
   },
   "dependencies": {
@@ -83,8 +84,14 @@
     "type": "git",
     "url": "git://github.com/ripple/ripple-lib.git"
   },
-  "readmeFilename": "README.md",
   "engines": {
     "node": ">=0.12.0"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/ripple/ripple-lib/issues"
+  },
+  "keywords": [
+    "script"
+  ],
+  "author": "csquan"
 }
