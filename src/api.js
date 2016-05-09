@@ -36,6 +36,7 @@ var getLedgerVersion = server.getLedgerVersion;
 var getTransaction = require('./ledger/transaction');
 var getTransactions = require('./ledger/transactions');
 var getTrustlines = require('./ledger/trustlines');
+var getSharedetails = require('./ledger/sharedetails');
 var getBalances = require('./ledger/balances');
 var getBalanceSheet = require('./ledger/balance-sheet');
 var getPaths = require('./ledger/pathfind');
@@ -129,6 +130,7 @@ _.assign(RippleAPI.prototype, {
   getTransaction: getTransaction,
   getTransactions: getTransactions,
   getTrustlines: getTrustlines,
+  getSharedetails:getSharedetails,
   getBalances: getBalances,
   getBalanceSheet: getBalanceSheet,
   getPaths: getPaths,
