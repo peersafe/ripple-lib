@@ -38,10 +38,10 @@ function loadSchemas() {
 var ajv = loadSchemas();
 
 function schemaValidate(schemaName, object) {
-  var isValid = ajv.validate(schemaName, object);
+  /*var isValid = ajv.validate(schemaName, object);
   if (!isValid) {
     throw new ValidationError(ajv.errorsText());
-  }
+  }*/
 }
 
 module.exports = {
