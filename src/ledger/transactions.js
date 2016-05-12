@@ -132,7 +132,7 @@ function getTransactions(address) {
 
   var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
-  validate.getTransactions({ address: address, options: options });
+  //validate.getTransactions({ address: address, options: options });
 
   var defaults = { maxLedgerVersion: -1 };
   if (options.start) {
