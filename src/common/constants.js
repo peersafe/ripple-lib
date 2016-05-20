@@ -40,6 +40,13 @@ var AccountFields = {
   MessageKey: { name: 'messageKey' },
   Domain: { name: 'domain', encoding: 'hex' },
   TransferRate: { name: 'transferRate', defaults: 0, shift: 9 }
+  Name:  { name: 'Name',  encoding: 'hex' },
+  Sex:   { name: 'Sex',   encoding: 'hex' },
+  Id:    { name: 'Id',    encoding: 'hex' },
+  Entity:{ name: 'Entity',encoding: 'hex' },
+  Workplace: { name: 'Workplace', encoding: 'hex' },
+  Contactphone: { name: 'Contactphone', encoding: 'hex' },
+  Contactaddress: { name: 'Contactaddress', encoding: 'hex' }
 };
 
 module.exports = {
