@@ -41,6 +41,7 @@ var getBalances = require('./ledger/balances');
 var getBalanceSheet = require('./ledger/balance-sheet');
 var getPaths = require('./ledger/pathfind');
 var getOrders = require('./ledger/orders');
+var queryAllOrders = require('./ledger/AllOrders');
 var getOrderbook = require('./ledger/orderbook');
 var getSettings = require('./ledger/settings');
 var getAccountInfo = require('./ledger/accountinfo');
@@ -135,6 +136,7 @@ _.assign(RippleAPI.prototype, {
   getBalanceSheet: getBalanceSheet,
   getPaths: getPaths,
   getOrders: getOrders,
+  queryAllOrders:queryAllOrders,
   getOrderbook: getOrderbook,
   getSettings: getSettings,
   getAccountInfo: getAccountInfo,
