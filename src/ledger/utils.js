@@ -21,7 +21,7 @@ function getXRPBalance(connection, address, ledgerVersion) {
   };
 
   return connection.request(request).then(function (data) {
-	return dropsToXrp(data.account_data.Balance);
+	return data;//dropsToXrp(data.account_data.Balance);
   });
 }
 
