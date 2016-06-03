@@ -39,7 +39,7 @@ var AccountFields = {
     length: 32, defaults: '0' },
   MessageKey: { name: 'messageKey' },
   Domain: { name: 'domain', encoding: 'hex' },
-  TransferRate: { name: 'transferRate', defaults: 0, shift: 9 }
+  TransferRate: { name: 'transferRate', defaults: 0, shift: 9 },
   Name:  { name: 'Name',  encoding: 'hex' },
   Sex:   { name: 'Sex',   encoding: 'hex' },
   Id:    { name: 'Id',    encoding: 'hex' },
