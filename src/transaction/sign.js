@@ -35,11 +35,13 @@ debugger;
 
   var keypair = keypairs.deriveKeypair(secret);
   tx.SigningPubKey = options.signAs ? '' : keypair.publicKey;
-
+  tx.SigningPrivateKey = options.signAs ? '' : keypair.privateKey;
+  
   if (options.signAs) {
     var signer = {
       Account: options.signAs,
       SigningPubKey: keypair.publicKey,
+      SigningPrivateKey: keypair.privateKey,
       TxnSignature: computeSignature(tx, keypair.privateKey, options.signAs)
     };
     tx.Signers = [{ Signer: signer }];
