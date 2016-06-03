@@ -3,6 +3,7 @@
 var assert = require('assert');
 var utils = require('./utils');
 var parsePayment = require('./payment');
+var parseExpansion = require('./expansion');
 var parseTrustline = require('./trustline');
 var parseOrder = require('./order');
 var parseOrderCancellation = require('./cancellation');
@@ -14,6 +15,7 @@ var parseSuspendedPaymentCancellation = require('./suspended-payment-cancellatio
 function parseTransactionType(type) {
   var mapping = {
     Payment: 'payment',
+	Expansion:'expansion',
     TrustSet: 'trustline',
     OfferCreate: 'order',
     OfferCancel: 'orderCancellation',
@@ -31,6 +33,7 @@ function parseTransaction(tx) {
   var type = parseTransactionType(tx.TransactionType);
   var mapping = {
     'payment': parsePayment,
+	'expansion':parseExpansion,
     'trustline': parseTrustline,
     'order': parseOrder,
     'orderCancellation': parseOrderCancellation,
