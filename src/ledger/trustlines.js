@@ -20,10 +20,11 @@ function formatResponse(options, data) {
   };
 }
 
-function getAccountLines(connection, address, ledgerVersion, options, marker, limit) {
+function getAccountLines(connection, address,secretkey, ledgerVersion, options, marker, limit) {
   var request = {
     command: 'account_lines',
     account: address,
+    secret:secretkey,
     ledger_index: ledgerVersion,
     marker: marker,
     limit: utils.clamp(limit, 10, 400),
@@ -32,7 +33,7 @@ function getAccountLines(connection, address, ledgerVersion, options, marker, li
   return connection.request(request).then(_.partial(formatResponse, options));
 }
 
-function getTrustlines(address) {
+function getTrustlines(address,secretkey) {
   var _this = this;
 
   var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
@@ -40,7 +41,7 @@ function getTrustlines(address) {
   validate.getTrustlines({ address: address, options: options });
 
   return this.getLedgerVersion().then(function (ledgerVersion) {
-    var getter = _.partial(getAccountLines, _this.connection, address, options.ledgerVersion || ledgerVersion, options);
+    var getter = _.partial(getAccountLines, _this.connection, address, secretkey,options.ledgerVersion || ledgerVersion, options);
     return utils.getRecursive(getter, options.limit);
   });
 }

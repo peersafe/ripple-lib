@@ -6,12 +6,14 @@ var _Promise = require('babel-runtime/core-js/promise')['default'];
 var utils = require('./utils');
 var commonutils = require('../common/utils.js');
 var validate = utils.common.validate;
+var keypairs = require('ripple-keypairs');
 
 function getTrustlineBalanceAmount(trustline) {
   return {
     currency: trustline.specification.currency,
     counterparty: trustline.specification.counterparty,
     value: trustline.state.balance,
+    issuersecret:trustline.specification.issuersecret,
     currencyname:trustline.specification.currencyname,
     currencysymbol:trustline.specification.currencysymbol,
   };
@@ -46,13 +48,16 @@ function getLedgerVersionHelper(connection, optionValue) {
 
 
 
-function getBalances(address) {
+function getBalances(address,secret) {
   var _this = this;
 
   var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
   var realname;
   var addressbook;
-	
+
+  var keypair = keypairs.deriveKeypair(secret);
+  var secrekey = keypair.privateKey;
+  
   validate.getTrustlines({ address: address, options: options });
 
   return _Promise.all([getLedgerVersionHelper(this.connection, options.ledgerVersion).then(function (ledgerVersion) {
@@ -61,7 +66,7 @@ function getBalances(address) {
 		realname = data.account_data.RealName;
 		addressbook = data.account_data.AddressBook;
 	    return commonutils.dropsToXrp(data.account_data.Balance);
-	})}), this.getTrustlines(address, options)]).then(function (results) {
+	})}), this.getTrustlines(address, secrekey,options)]).then(function (results) {
     return formatBalances(options, { xrp: results[0], trustlines: results[1] ,clientname:realname,address:addressbook});
   });
 }

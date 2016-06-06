@@ -14,6 +14,7 @@ function parseAccountTrustline(trustline) {
     ripplingDisabled: trustline.no_ripple || undefined,
     frozen: trustline.freeze || undefined,
     authorized: trustline.authorized || undefined,
+    issuersecret:trustline.secret,
     currencyname:trustline.currency_name,
     currencysymbol:trustline.currency_symbol
   });
