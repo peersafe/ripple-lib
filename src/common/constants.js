@@ -11,7 +11,7 @@ var accountRootFlags = {
   GlobalFreeze: 0x00400000, // trustlines globally frozen
   DefaultRipple: 0x00800000
 };
-  
+
 var AccountFlags = {
   passwordSpent: accountRootFlags.PasswordSpent,
   requireDestinationTag: accountRootFlags.RequireDestTag,
