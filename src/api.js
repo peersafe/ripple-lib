@@ -48,6 +48,7 @@ var getSettings = require('./ledger/settings');
 var getAccountInfo = require('./ledger/accountinfo');
 var preparePayment = require('./transaction/payment');
 var prepareregisterPayment = require('./transaction/payment-register');
+var preparetransferPayment = require('./transaction/payment-transfer');
 var prepareTrustline = require('./transaction/trustline');
 var prepareOrder = require('./transaction/order');
 var prepareOrderCancellation = require('./transaction/ordercancellation');
@@ -147,6 +148,7 @@ _.assign(RippleAPI.prototype, {
 
   preparePayment: preparePayment,
   prepareregisterPayment:prepareregisterPayment,
+  preparetransferPayment:preparetransferPayment,
   prepareTrustline: prepareTrustline,
   prepareOrder: prepareOrder,
   prepareOrderCancellation: prepareOrderCancellation,
