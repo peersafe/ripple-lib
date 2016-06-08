@@ -64,7 +64,7 @@ function createPaymentTransaction(address, paymentArgument) {
   var amount = payment.destination.minAmount && !isXRPToXRPPayment(payment) ? createMaximalAmount(payment.destination.minAmount) : payment.destination.amount || payment.destination.minAmount;
 
   var txJSON = {
-    TransactionType: 'Expansion',
+    TransactionType: 'Register',
     Account: payment.source.address,
     Destination: payment.destination.address,
     Amount: toRippledAmount(amount),
