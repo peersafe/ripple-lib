@@ -58,6 +58,7 @@ var prepareSuspendedPaymentCancellation = require('./transaction/suspended-payme
 var prepareSettings = require('./transaction/settings');
 var sign = require('./transaction/sign');
 var combine = require('./transaction/combine');
+var getExpansion = require('./transaction/getExpansion');
 var submit = require('./transaction/submit');
 var errors = require('./common').errors;
 var generateAddress = require('./offline/generate-address').generateAddressAPI;
@@ -159,7 +160,7 @@ _.assign(RippleAPI.prototype, {
   sign: sign,
   combine: combine,
   submit: submit,
-
+  getExpansion:getExpansion,
   generateAddress: generateAddress,
   computeLedgerHash: computeLedgerHash,
   errors: errors
