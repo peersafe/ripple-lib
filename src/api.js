@@ -60,6 +60,7 @@ var sign = require('./transaction/sign');
 var combine = require('./transaction/combine');
 var getExpansion = require('./transaction/getExpansion');
 var submit = require('./transaction/submit');
+var storeaccountinfo = require('./transaction/storeaccountinfo');
 var errors = require('./common').errors;
 var generateAddress = require('./offline/generate-address').generateAddressAPI;
 var computeLedgerHash = require('./offline/ledgerhash');
@@ -160,6 +161,7 @@ _.assign(RippleAPI.prototype, {
   sign: sign,
   combine: combine,
   submit: submit,
+  storeaccountinfo:storeaccountinfo,
   getExpansion:getExpansion,
   generateAddress: generateAddress,
   computeLedgerHash: computeLedgerHash,
