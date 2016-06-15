@@ -52,8 +52,8 @@ debugger;
   //console.log(tx);
   var serialized = binary.encode(tx);
   var tmp = binary.decode(serialized);
-  console.log("**********decode************");
-  console.log(tmp);
+  //console.log("**********decode************");
+  //console.log(tmp);
   return {
     signedTransaction: serialized,
     id: computeBinaryTransactionHash(serialized)
