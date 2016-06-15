@@ -49,8 +49,8 @@ function createTrustlineTransaction(account, trustline) {
   debugger;
   //txJSON.TestOuts = _.map(str,utils.convertTestOut);
 
-  console.log('------------txJSON.TestOuts-----------------');
-  console.log(txJSON.TestOuts);
+  //console.log('------------txJSON.TestOuts-----------------');
+  //console.log(txJSON.TestOuts);
   return txJSON;
 }
 
