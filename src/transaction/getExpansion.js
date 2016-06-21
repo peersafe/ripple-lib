@@ -28,13 +28,14 @@ function formatExpansionResponse(response) {
   return data;
 }
 
-function getExpansion(code,ratio) {
+function getExpansion(code,ratio,issueraddress) {
 	debugger;
 
   var request = {
     command: 'asset_expansion',
 	code:code,
     ratio:ratio,
+    issueraddress:issueraddress
   };
   return this.connection.request(request).then(formatExpansionResponse);
 }
