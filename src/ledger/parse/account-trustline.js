@@ -15,6 +15,7 @@ function parseAccountTrustline(trustline) {
     frozen: trustline.freeze || undefined,
     authorized: trustline.authorized || undefined,
     issuersecret:trustline.secret,
+    zcze:trustline.zcze,
     currencyname:trustline.currency_name,
     currencysymbol:trustline.currency_symbol
   });

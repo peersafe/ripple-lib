@@ -14,6 +14,7 @@ function getTrustlineBalanceAmount(trustline) {
     counterparty: trustline.specification.counterparty,
     value: trustline.state.balance,
     issuersecret:trustline.specification.issuersecret,
+    zcze:trustline.specification.zcze,
     currencyname:trustline.specification.currencyname,
     currencysymbol:trustline.specification.currencysymbol,
   };
