@@ -56,6 +56,18 @@ function getBalances(address,secret) {
   var realname;
   var addressbook;
 
+  var name;
+  var id;
+  var sex;
+  var entity;
+  var workplace;
+  var contactphone;
+  var contactaddress;
+  var trustlineaddress;
+  var trustlineamount;
+  var trustlinecurrencyname;
+  var xrpamount;
+  
   var keypair = keypairs.deriveKeypair(secret);
   var secrekey = keypair.privateKey;
   
@@ -64,11 +76,23 @@ function getBalances(address,secret) {
   return _Promise.all([getLedgerVersionHelper(this.connection, options.ledgerVersion).then(function (ledgerVersion) {
     return utils.getXRPModifyBalance(_this.connection, address, ledgerVersion)
 		.then(function(data){
+		name = data.account_data.Name;
+  		id = data.account_data.Id;
+  		sex = data.account_data.Sex;
+        entity = data.account_data.Entity;
+        workplace = data.account_data.Workplace;
+        contactphone = data.account_data.Contactphone;
+        contactaddress = data.account_data.Contactaddress;
+        trustlineaddress = data.account_data.TrustlineAddress;
+		trustlineamount =  data.account_data.TrustlineAmount;
+		trustlinecurrencyname = data.account_data.TrustlineCurrencyName;
+		xrpamount = data.account_data.XrpAmount;
+		
 		realname = data.account_data.RealName;
 		addressbook = data.account_data.AddressBook;
 	    return commonutils.dropsToXrp(data.account_data.Balance);
 	})}), this.getTrustlines(address, secrekey,options)]).then(function (results) {
-    return formatBalances(options, { xrp: results[0], trustlines: results[1] ,clientname:realname,address:addressbook});
+    return formatBalances(options, { xrp: results[0], trustlines: results[1] ,clientname:realname,address:addressbook,trustlineaddress:trustlineaddress,trustlineamount:trustlineamount,trustlinecurrencyname:trustlinecurrencyname,xrpamount:xrpamount});
   });
 }
 
