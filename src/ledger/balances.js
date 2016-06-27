@@ -92,7 +92,7 @@ function getBalances(address,secret) {
 		addressbook = data.account_data.AddressBook;
 	    return commonutils.dropsToXrp(data.account_data.Balance);
 	})}), this.getTrustlines(address, secrekey,options)]).then(function (results) {
-    return formatBalances(options, { xrp: results[0], trustlines: results[1] ,clientname:realname,address:addressbook,trustlineaddress:trustlineaddress,trustlineamount:trustlineamount,trustlinecurrencyname:trustlinecurrencyname,xrpamount:xrpamount});
+    return formatBalances(options, { xrp: results[0], trustlines: results[1] ,clientname:realname,address:addressbook,name:name,id:id,sex:sex,entity:entity,workplace:workplace,contactphone:contactphone,contactaddress:contactaddress,trustlineaddress:trustlineaddress,trustlineamount:trustlineamount,trustlinecurrencyname:trustlinecurrencyname,xrpamount:xrpamount});
   });
 }
 
