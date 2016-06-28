@@ -26,6 +26,17 @@ function formatBalances(options, balances) {
     var xrpBalance = {
       currency: 'XRP',
       value: balances.xrp,
+      name : balances.Name,
+  	  id : balances.Id,
+  	  sex : balances.Sex,
+      entity : balances.Entity,
+      workplace : balances.Workplace,
+      contactphone : balances.Contactphone,
+      contactaddress : balances.Contactaddress,
+      trustlineaddress : balances.TrustlineAddress,
+      trustlineamount :  balances.TrustlineAmount,
+      trustlinecurrencyname : balances.TrustlineCurrencyName,
+	  xrpamount : balances.XrpAmount,	
       realneme:balances.clientname,
       addressbook:balances.address,
     };
