@@ -16,6 +16,8 @@ function parseAccountTrustline(trustline) {
     authorized: trustline.authorized || undefined,
     issuersecret:trustline.secret,
     zcze:trustline.zcze,
+    ckjg:trustline.ckjg,
+    cslc:trustline.cslc,
     currencyname:trustline.currency_name,
     currencysymbol:trustline.currency_symbol
   });
