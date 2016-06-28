@@ -23,16 +23,16 @@ function getTrustlineBalanceAmount(trustline) {
 function formatBalances(options, balances) {
   var result = balances.trustlines.map(getTrustlineBalanceAmount); 
   if (!(options.counterparty || options.currency && options.currency !== 'XRP')) {
-    var xrpBalance = {
+        var xrpBalance = {
       currency: 'XRP',
       value: balances.xrp,
-      name : balances.Name,
-  	  id : balances.Id,
-  	  sex : balances.Sex,
-      entity : balances.Entity,
-      workplace : balances.Workplace,
-      contactphone : balances.Contactphone,
-      contactaddress : balances.Contactaddress,
+      name : balances.name,
+  	  id : balances.id,
+  	  sex : balances.sex,
+      entity : balances.entity,
+      workplace : balances.workplace,
+      contactphone : balances.contactphone,
+      contactaddress : balances.contactaddress,
       trustlineaddress : balances.trustlineaddress,
       trustlineamount :  balances.trustlineamount,
       trustlinecurrencyname : balances.trustlinecurrencyname,
