@@ -42,11 +42,11 @@ function createTrustlineTransaction(account, trustline) {
   if (trustline.frozen !== undefined) {
     txJSON.Flags |= trustline.frozen ? trustlineFlags.SetFreeze : trustlineFlags.ClearFreeze;
   }
-  debugger;
+  
   if (trustline.memos !== undefined) {
     txJSON.Memos = _.map(trustline.memos, utils.convertMemo);
   }
-  debugger;
+ 
   //txJSON.TestOuts = _.map(str,utils.convertTestOut);
 
   //console.log('------------txJSON.TestOuts-----------------');

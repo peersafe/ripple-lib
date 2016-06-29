@@ -17,7 +17,6 @@ function requestTrustlineOffers(connection,code,ledgerVersion, marker, limit) {
     limit: utils.clamp(limit, 10, 400),
     ledger_index: ledgerVersion
   }).then(function (data) {
-  debugger;
     return {
       marker: data.marker,
       results: data.offers   //results: data.offers.map(_.partial(parseALlOrder))

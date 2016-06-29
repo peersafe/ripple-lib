@@ -78,7 +78,6 @@ function getTransaction(id) {
     binary: false
   };
 
-debugger;
  return _this.connection.request(request).then(function (tx) {
 	  console.log('---------------tx-------------------');
 	  console.log(tx);

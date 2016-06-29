@@ -10,7 +10,6 @@ var validate = utils.common.validate;
 var parseAccountOrder = require('./parse/account-order');
 var parseAllOrder = require('./parse/AllOrder');
 function requestAccountOffers(connection,ledgerVersion, marker, limit) {
-	debugger;
   return connection.request({
     command: 'offers',
     marker: marker,

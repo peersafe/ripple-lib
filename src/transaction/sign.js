@@ -14,18 +14,17 @@ function computeSignature(tx, privateKey, signAs) {
   var signingData = signAs ? binary.encodeForMultisigning(tx, signAs) : binary.encodeForSigning(tx);
   //console.log('**********signingData**************');
   //console.log(signingData);
-  debugger;
   return keypairs.sign(signingData, privateKey);
 }
 
 function sign(txJSON, secret) {
-	debugger;
+
   var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
   validate.sign({ txJSON: txJSON, secret: secret });
   // we can't validate that the secret matches the account because
   // the secret could correspond to the regular key
-debugger;
+
   var tx = JSON.parse(txJSON);
   //console.log("****************in sign********************");
   //console.log(tx);

@@ -43,7 +43,6 @@ function createMaximalAmount(amount) {
 }
 
 function createPaymentTransaction(address, paymentArgument) {
-	debugger;
   var payment = _.cloneDeep(paymentArgument);
   applyAnyCounterpartyEncoding(payment);
 
@@ -115,7 +114,6 @@ function createPaymentTransaction(address, paymentArgument) {
 }
 
 function preparetransferPayment(address, payment) {
-debugger;
   var instructions = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
   validate.preparePayment({ address: address, payment: payment, instructions: instructions });

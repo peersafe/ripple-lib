@@ -86,9 +86,7 @@ function prepareTransaction(txJSON, api, instructions) {
       return txJSON;
     });
   }
-debugger;
   return _Promise.all([prepareMaxLedgerVersion(), prepareFee(), prepareSequence()]).then(function () {
-debugger;
 	return formatPrepareResponse(txJSON);
   });
 }

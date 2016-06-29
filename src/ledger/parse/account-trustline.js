@@ -31,7 +31,6 @@ function parseAccountTrustline(trustline) {
   var state = {
     balance: trustline.balance
   };
-  debugger;
   return { specification: specification, counterparty: counterparty, state: state };
 }
 

@@ -29,7 +29,6 @@ function formatExpansionResponse(response) {
 }
 
 function getExpansion(code,ratio,issueraddress,issuersecret,rzje,krhjg,krfe,krlc) {
-	debugger;
 
   var request = {
     command: 'asset_expansion',

@@ -7,7 +7,6 @@ var utils = require('./utils');
 
 
 function parseAssetInfo(trustline) {
-debugger;
 console.log(trustline);
   return trustline;
 }
@@ -17,7 +16,6 @@ function currencyFilter(currency, trustline) {
 }
 
 function formatResponse(options, data) {
-	debugger;
   return {
     marker: data.marker,
     results: data.lines.map(parseAssetInfo).filter(_.partial(currencyFilter, options.currency || null))
@@ -33,13 +31,11 @@ function getAssetaccountInfo(connection, code, ledgerVersion, options, marker, l
     limit: utils.clamp(limit, 10, 400),
     peer: options.counterparty
   };
-  debugger;
   return connection.request(request).then(_.partial(formatResponse, options));
 }
 
 
 function getSharedetails(code) {
-debugger;
   var _this = this;
 
   var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
