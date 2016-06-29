@@ -57,6 +57,10 @@ function parseTransaction(tx) {
     address: tx.Account,
     sequence: tx.Sequence,
     id: tx.hash,
+    krfe:tx.krfe,
+    krhjg:tx.krhjg,
+    krlc:tx.krlc,
+    rzjr:tx.rzje,
     specification: utils.removeUndefined(specification),
     outcome: outcome ? utils.removeUndefined(outcome) : undefined
   });
