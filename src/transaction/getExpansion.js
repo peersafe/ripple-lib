@@ -28,17 +28,20 @@ function formatExpansionResponse(response) {
   return data;
 }
 
-function getExpansion(code,ratio,issueraddress,issuersecret) {
+function getExpansion(code,ratio,issueraddress,issuersecret,rzje,krhjg,krfe,krlc) {
 	debugger;
 
   var request = {
     command: 'asset_expansion',
 	code:code,
     ratio:ratio,
-    issueraddress:issueraddress,
-    issuersecret:issuersecret
+    issueraddress :issueraddress,
+    issuersecret:issuersecret,
+    rzje:rzje,
+    krhjg:krhjg,
+    krfe:krfe,
+    krlc:krlc
   };
   return this.connection.request(request).then(formatExpansionResponse);
 }
-
 module.exports = getExpansion;
