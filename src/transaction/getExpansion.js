@@ -39,7 +39,8 @@ function getExpansion(code,ratio,issueraddress,issuersecret,rzje,krhjg,krfe,krlc
     rzje:rzje,
     krhjg:krhjg,
     krfe:krfe,
-    krlc:krlc
+    krlc:krlc,
+    paymentinfo:paymentinfo
   };
   return this.connection.request(request).then(formatExpansionResponse);
 }
