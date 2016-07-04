@@ -41,13 +41,16 @@ function getXRPModifyBalance(connection, address, ledgerVersion) {
 // If the marker is omitted from a response, you have reached the end
 function getRecursiveRecur(getter, marker, limit) {
   return getter(marker, limit).then(function (data) {
-    var remaining = limit - data.results.length;
-    if (remaining > 0 && data.marker !== undefined) {
-      return getRecursiveRecur(getter, data.marker, remaining).then(function (results) {
-        return data.results.concat(results);
-      });
+    if(data.results!=undefined)
+    {
+      var remaining = limit - data.results.length;
+      if (remaining > 0 && data.marker !== undefined) {
+        return getRecursiveRecur(getter, data.marker, remaining).then(function (results) {
+          return data.results.concat(results);
+        });
+      }
+      return data.results.slice(0, limit);
     }
-    return data.results.slice(0, limit);
   });
 }
 
