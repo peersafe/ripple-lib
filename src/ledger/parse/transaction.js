@@ -6,6 +6,7 @@ var parsePayment = require('./payment');
 var parseExpansion = require('./expansion');
 var parseTransfer = require('./transfer');
 var parseRegister = require('./register');
+var parseCheckin = require('./checkin');
 var parseTrustline = require('./trustline');
 var parseOrder = require('./order');
 var parseOrderCancellation = require('./cancellation');
@@ -20,6 +21,7 @@ function parseTransactionType(type) {
 	Expansion:'expansion',
 	Transfer:'transfer',
 	Register:'register',
+	Checkin:'checkin',
     TrustSet: 'trustline',
     OfferCreate: 'order',
     OfferCancel: 'orderCancellation',
@@ -40,6 +42,7 @@ function parseTransaction(tx) {
 	'expansion':parseExpansion,
 	'transfer': parseTransfer,
 	'register': parseRegister,
+		'checkin': parseCheckin,
     'trustline': parseTrustline,
     'order': parseOrder,
     'orderCancellation': parseOrderCancellation,
