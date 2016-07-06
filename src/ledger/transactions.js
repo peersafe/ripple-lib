@@ -5,7 +5,7 @@
 var _Promise = require('babel-runtime/core-js/promise')['default'];
 
 var _ = require('lodash');
-var binary = require('ripple-binary-codec');
+var binary = require('zc-ripple-binary-codec');
 
 var _require = require('ripple-hashes');
 
