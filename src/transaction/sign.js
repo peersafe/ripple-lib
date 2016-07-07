@@ -2,7 +2,7 @@
 'use strict';
 var utils = require('./utils');
 var keypairs = require('ripple-keypairs');
-var binary = require('ripple-binary-codec');
+var binary = require('zc-ripple-binary-codec');
 
 var _require = require('ripple-hashes');
 
