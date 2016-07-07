@@ -1,7 +1,7 @@
 
 'use strict';
 var _ = require('lodash');
-var binary = require('zc-ripple-binary-codec');
+var binary = require('ripple-binary-codec');
 var utils = require('./utils');
 var BigNumber = require('bignumber.js');
 

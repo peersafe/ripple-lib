@@ -38,6 +38,7 @@ function formatBalances(options, balances) {
       trustlineaddress : balances.trustlineaddress,
       trustlineamount :  balances.trustlineamount,
       trustlinecurrencyname : balances.trustlinecurrencyname,
+      trustlinecurrencyckjg : balances.trustlinecurrencyckjg,
 	  xrpamount : balances.xrpamount,	
       realneme:balances.clientname,
       addressbook:balances.address,
@@ -79,6 +80,7 @@ function getBalances(address,secret) {
   var trustlineaddress;
   var trustlineamount;
   var trustlinecurrencyname;
+  var trustlinecurrencyckjg;
   var xrpamount;
   
   var keypair = keypairs.deriveKeypair(secret);
@@ -99,13 +101,14 @@ function getBalances(address,secret) {
         trustlineaddress = data.TrustlineAddress;
 		trustlineamount =  data.TrustlineAmount;
 		trustlinecurrencyname = data.TrustlineCurrencyName;
+		trustlinecurrencyckjg = data.TrustlineCurrencyCkjg;
 		xrpamount = data.XrpAmount;	
 		
 		//realname = data.account_data.RealName;
 		//addressbook = data.account_data.AddressBook;
 	    return commonutils.dropsToXrp(data.account_data.Balance);
 	})}), this.getTrustlines(address, secrekey,options)]).then(function (results) {
-    return formatBalances(options, { xrp: results[0], trustlines: results[1] ,clientname:realname,address:addressbook,name:name,id:id,sex:sex,entity:entity,workplace:workplace,contactphone:contactphone,contactaddress:contactaddress,trustlineaddress:trustlineaddress,trustlineamount:trustlineamount,trustlinecurrencyname:trustlinecurrencyname,xrpamount:xrpamount});
+    return formatBalances(options, { xrp: results[0], trustlines: results[1] ,clientname:realname,address:addressbook,name:name,id:id,sex:sex,entity:entity,workplace:workplace,contactphone:contactphone,contactaddress:contactaddress,trustlineaddress:trustlineaddress,trustlineamount:trustlineamount,trustlinecurrencyname:trustlinecurrencyname,trustlinecurrencyckjg:trustlinecurrencyckjg,xrpamount:xrpamount});
   });
 }
 
