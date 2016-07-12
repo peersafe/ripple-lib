@@ -36,7 +36,7 @@ function getAccountLines(connection, address,secretkey, ledgerVersion, options, 
 function getTrustlines(address,secretkey) {
   var _this = this;
 
-  var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+  var options = arguments.length <= 1 || arguments[2] === undefined ? {} : arguments[2];
 
   validate.getTrustlines({ address: address, options: options });
 

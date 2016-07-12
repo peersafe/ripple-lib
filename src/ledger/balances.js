@@ -66,7 +66,7 @@ function getLedgerVersionHelper(connection, optionValue) {
 function getBalances(address,secret) {
   var _this = this;
 
-  var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+  var options = arguments.length <= 1 || arguments[2] === undefined ? {} : arguments[2];
   var realname;
   var addressbook;
 
