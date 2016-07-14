@@ -41,7 +41,7 @@ function getXRPModifyBalance(connection, address, ledgerVersion) {
 // If the marker is omitted from a response, you have reached the end
 function getRecursiveRecur(getter, marker, limit) {
   return getter(marker, limit).then(function (data) {
-    if(data.results!=undefined)
+    if((data!=undefined)&&(data.results!=undefined))
     {
       var remaining = limit - data.results.length;
       if (remaining > 0 && data.marker !== undefined) {

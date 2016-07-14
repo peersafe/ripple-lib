@@ -64,13 +64,17 @@ function orderFilter(options, tx) {
 }
 
 function formatPartialResponse(address, options, data) {
+	  if(data.transactions){
   return {
     marker: data.marker,
     results: data.transactions.filter(function (tx) {
       return tx.validated;
     }).map(parseAccountTxTransaction).filter(_.partial(transactionFilter, address, options)).filter(_.partial(orderFilter, options))
   };
+	  	}
 }
+
+
 
 function getAccountTx(connection, address, options, marker, limit) {
   var request = {
@@ -115,10 +119,12 @@ function checkForLedgerGaps(connection, options, transactions) {
 
 function formatResponse(connection, options, transactions) {
   var compare = options.earliestFirst ? utils.compareTransactions : _.rearg(utils.compareTransactions, 1, 0);
+ if(transactions){
   var sortedTransactions = transactions.sort(compare);
   return checkForLedgerGaps(connection, options, sortedTransactions).then(function () {
     return sortedTransactions;
   });
+ 	}
 }
 
 function getTransactionsInternal(connection, address, options) {
