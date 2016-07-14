@@ -35,6 +35,7 @@ var isConnected = server.isConnected;
 var getLedgerVersion = server.getLedgerVersion;
 var getTransaction = require('./ledger/transaction');
 var getTransactions = require('./ledger/transactions');
+var getOfferTransactions = require('./ledger/offertransactions');
 var getTrustlines = require('./ledger/trustlines');
 var getSharedetails = require('./ledger/sharedetails');
 var getBalances = require('./ledger/balances');
@@ -135,6 +136,7 @@ _.assign(RippleAPI.prototype, {
 
   getTransaction: getTransaction,
   getTransactions: getTransactions,
+  getOfferTransactions:getOfferTransactions,
   getTrustlines: getTrustlines,
   getSharedetails:getSharedetails,
   getBalances: getBalances,
