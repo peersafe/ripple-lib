@@ -103,6 +103,7 @@ function getBalances(address,secret) {
 		trustlinecurrencyname = data.TrustlineCurrencyName;
 		trustlinecurrencyckjg = data.TrustlineCurrencyCkjg;
 		xrpamount = data.XrpAmount;	
+		addressbook = data.addressbook;
 		
 		//realname = data.account_data.RealName;
 		//addressbook = data.account_data.AddressBook;
