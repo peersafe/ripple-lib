@@ -4,11 +4,17 @@ var common = require('../common');
 var errors = common.errors;
 var validate = common.validate;
 
-function generateAddress(options) {
-  var secret = keypairs.generateSeed(options);
+function generateAddress(secret, options) {
+  var secret = secret;
+  if (!secret) {
+    secret = keypairs.generateSeed(options);
+  }
   var keypair = keypairs.deriveKeypair(secret);
   var address = keypairs.deriveAddress(keypair.publicKey);
-  return { secret: secret, address: address };
+  return {
+    secret: secret,
+    address: address
+  };
 }
 
 function generateAddressAPI(options) {
@@ -17,7 +23,7 @@ function generateAddressAPI(options) {
     return generateAddress(options);
   } catch (error) {
     throw new errors.UnexpectedError(error.message);
-  }
+  }   
 }
 
 module.exports = {
