@@ -7,7 +7,6 @@ var utils = require('./utils');
 
 
 function parseAssetInfo(trustline) {
-console.log(trustline);
   return trustline;
 }
 
