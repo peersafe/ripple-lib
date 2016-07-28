@@ -26,7 +26,6 @@ function getAssetaccountInfo(connection, code, issueraddress,ledgerVersion, opti
   var request = {
     command: 'asset_info',
     code: code,
-    issueraddress:issueraddress,
     ledger_index: ledgerVersion,
     marker: marker,
     limit: utils.clamp(limit, 10, 400),
@@ -36,13 +35,13 @@ function getAssetaccountInfo(connection, code, issueraddress,ledgerVersion, opti
 }
 
 
-function getSharedetails(code,issueraddress) {
+function getSharedetails(code) {
   var _this = this;
 
   var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
   return this.getLedgerVersion().then(function (ledgerVersion) {
-    var getter = _.partial(getAssetaccountInfo, _this.connection, code,issueraddress, options.ledgerVersion || ledgerVersion, options);
+    var getter = _.partial(getAssetaccountInfo, _this.connection, code, options.ledgerVersion || ledgerVersion, options);
 	return utils.getRecursive(getter, options.limit);
   });
 }
