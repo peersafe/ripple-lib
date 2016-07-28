@@ -36,7 +36,7 @@ function formatResponse(options, data) {
   };
 }
 
-function getAssetaccountInfo(connection, code, issueraddress,ledgerVersion, options, marker, limit) {
+function getAssetaccountInfo(connection, code,ledgerVersion, options, marker, limit) {
   var request = {
     command: 'asset_info',
     code: code,
