@@ -15,9 +15,24 @@ function currencyFilter(currency, trustline) {
 }
 
 function formatResponse(options, data) {
+ var arr = data.lines[0].map(parseAssetInfo).filter(_.partial(currencyFilter, options.currency || null));
+
+  var arrdata = {};
+
+  arr.forEach(function(item) {
+   if (parseInt(item.balance) < 0) { 
+     if (!arrdata[item.account]) {
+       arrdata[item.account] = [];
+       arrdata[item.account].push(item);
+     } else {
+       arrdata[item.account].push(item);
+     }
+   }
+  });
+   
   return {
     marker: data.marker,
-    results: data.lines.map(parseAssetInfo).filter(_.partial(currencyFilter, options.currency || null))
+    results: arrdata
   };
 }
 
@@ -40,10 +55,12 @@ function getSharedetails(code) {
   var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
   return this.getLedgerVersion().then(function (ledgerVersion) {
-    var getter = _.partial(getAssetaccountInfo, _this.connection, code, options.ledgerVersion || ledgerVersion, options);
-	return utils.getRecursive(getter, options.limit);
+	return getAssetaccountInfo(_this.connection, code, options.ledgerVersion || ledgerVersion, options).then(function(data){
+      return data.results;
+	});
   });
 }
+
 
 module.exports = getSharedetails;
 
