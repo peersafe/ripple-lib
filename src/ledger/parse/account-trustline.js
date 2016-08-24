@@ -20,6 +20,9 @@ type AccountTrustline = {
 // rippled 'account_lines' returns a different format for
 // trustlines than 'tx'
 function parseAccountTrustline(trustline: Trustline): AccountTrustline {
+  if (trustline.memos) {
+    trustline.Memos = trustline.memos;
+  }
   const specification = utils.removeUndefined({
     limit: trustline.limit,
     currency: trustline.currency,
@@ -28,7 +31,8 @@ function parseAccountTrustline(trustline: Trustline): AccountTrustline {
     qualityOut: utils.parseQuality(trustline.quality_out) || undefined,
     ripplingDisabled: trustline.no_ripple || undefined,
     frozen: trustline.freeze || undefined,
-    authorized: trustline.authorized || undefined
+    authorized: trustline.authorized || undefined,
+    memos: utils.parseMemos(trustline)
   });
   // rippled doesn't provide the counterparty's qualities
   const counterparty = utils.removeUndefined({
